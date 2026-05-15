@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Steward: The Game — @thedatasteward</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1628;
+    --bg-2: #12233c;
+    --bg-3: #1a2d4a;
+    --line: rgba(180, 195, 215, 0.12);
+    --line-strong: rgba(255, 214, 10, 0.4);
+    --text: #ffffff;
+    --text-muted: #b4c3d7;
+    --text-dim: #6b7d99;
+    --yellow: #ffd60a;
+    --teal: #00d9c0;
+    --red: #ff6363;
+    --green: #6edc8c;
+    --shadow: 0 20px 60px rgba(0,0,0,0.4);
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  /* Noise grain overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 1;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 24px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .key-icon {
+    width: 20px;
+    height: 20px;
+    fill: var(--yellow);
+  }
+
+  .hud {
+    display: flex;
+    gap: 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .hud-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hud-value {
+    color: var(--yellow);
+    font-weight: 700;
+  }
+
+  /* ============ START SCREEN ============ */
+  .start-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 0;
+    animation: fadeUp 0.6s ease-out;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 32px;
+    height: 2px;
+    background: var(--yellow);
+  }
+
+  .title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(48px, 9vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+  }
+  .title .stress {
+    color: var(--yellow);
+    font-style: italic;
+  }
+
+  .lede {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(18px, 2.5vw, 24px);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin-bottom: 48px;
+  }
+
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .rule {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .rule-num {
+    color: var(--yellow);
+    font-size: 28px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .rule-text {
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--yellow);
+    color: var(--bg);
+    border: none;
+    padding: 20px 36px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .start-btn:hover {
+    background: #fff;
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--yellow);
+  }
+  .start-btn:active {
+    transform: translate(0,0);
+    box-shadow: none;
+  }
+  .start-btn .arrow {
+    font-size: 20px;
+  }
+
+  /* ============ GAME SCREEN ============ */
+  .game-screen { display: none; flex: 1; flex-direction: column; }
+  .game-screen.active { display: flex; animation: fadeUp 0.4s ease-out; }
+
+  .scenario-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 2px;
+    background: var(--line);
+    margin: 0 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    position: absolute;
+    inset: 0 100% 0 0;
+    background: var(--yellow);
+    transition: right 0.4s ease;
+  }
+
+  .scenario-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 40px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .scenario-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60px; height: 4px;
+    background: var(--yellow);
+  }
+
+  .scenario-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 16px;
+  }
+
+  .scenario-sender {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .scenario-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(24px, 3.5vw, 36px);
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .scenario-body {
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .scenario-body strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .choices-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .choices-label::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--text-dim);
+  }
+
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .choice {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 20px 24px;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+  }
+  .choice:hover {
+    border-color: var(--yellow);
+    background: rgba(255, 214, 10, 0.05);
+    transform: translateX(4px);
+  }
+  .choice-letter {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--yellow);
+    flex-shrink: 0;
+    width: 24px;
+  }
+  .choice-text { flex: 1; }
+
+  .choice.disabled { cursor: default; }
+  .choice.disabled:hover {
+    transform: none;
+    background: transparent;
+    border-color: var(--line);
+  }
+  .choice.disabled.correct {
+    border-color: var(--green);
+    background: rgba(110, 220, 140, 0.08);
+  }
+  .choice.disabled.correct .choice-letter { color: var(--green); }
+
+  .choice.disabled.wrong {
+    border-color: var(--red);
+    background: rgba(255, 99, 99, 0.08);
+    opacity: 0.7;
+  }
+  .choice.disabled.wrong .choice-letter { color: var(--red); }
+
+  /* ============ FEEDBACK ============ */
+  .feedback {
+    margin-top: 24px;
+    padding: 24px;
+    border-left: 4px solid var(--yellow);
+    background: rgba(255, 214, 10, 0.04);
+    animation: fadeUp 0.4s ease-out;
+    display: none;
+  }
+  .feedback.show { display: block; }
+
+  .feedback.good { border-color: var(--green); background: rgba(110, 220, 140, 0.06); }
+  .feedback.bad { border-color: var(--red); background: rgba(255, 99, 99, 0.06); }
+
+  .feedback-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .feedback-verdict {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--yellow);
+  }
+  .feedback.good .feedback-verdict { color: var(--green); }
+  .feedback.bad .feedback-verdict { color: var(--red); }
+
+  .feedback-points {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .feedback-body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .feedback-lesson {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text);
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .next-btn {
+    margin-top: 20px;
+    background: transparent;
+    border: 1px solid var(--text);
+    color: var(--text);
+    padding: 14px 28px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .next-btn:hover {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  /* ============ END SCREEN ============ */
+  .end-screen { display: none; flex: 1; flex-direction: column; justify-content: center; padding: 40px 0; }
+  .end-screen.active { display: flex; animation: fadeUp 0.6s ease-out; }
+
+  .verdict-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 16px;
+  }
+
+  .verdict-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(40px, 7vw, 80px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .verdict-title .accent { color: var(--yellow); font-style: italic; }
+
+  .score-display {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .score-num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(80px, 14vw, 160px);
+    line-height: 1;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+  }
+  .score-of {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  .verdict-blurb {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-style: italic;
+    color: var(--text);
+    max-width: 500px;
+    margin-bottom: 40px;
+    line-height: 1.4;
+  }
+
+  .breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .breakdown-item .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .breakdown-item .val {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 28px;
+    color: var(--text);
+  }
+  .breakdown-item .val.yellow { color: var(--yellow); }
+  .breakdown-item .val.green { color: var(--green); }
+  .breakdown-item .val.red { color: var(--red); }
+
+  .end-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .share-text {
+    margin-top: 32px;
+    padding: 20px;
+    background: var(--bg-2);
+    border: 1px dashed var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    user-select: all;
+    cursor: text;
+  }
+  .share-hint {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile tweaks */
+  @media (max-width: 600px) {
+    .container { padding: 16px; }
+    .scenario-card { padding: 24px; }
+    .start-btn { padding: 16px 24px; font-size: 12px; }
+    .hud { gap: 16px; font-size: 11px; }
+    .end-actions { flex-direction: column; }
+    .end-actions button { width: 100%; justify-content: center; }
+  }
+
+  /* Site nav added for website integration */
+  .game-site-header {
+    border-bottom: 1px solid var(--line);
+    padding: 20px 0;
+    position: relative;
+    z-index: 5;
+  }
+  .game-site-header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .game-site-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .game-site-brand:hover { color: var(--yellow); }
+  .game-site-brand svg { width: 22px; height: 22px; }
+  .game-back-link {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .game-back-link:hover { color: var(--yellow); }
+  @media (max-width: 600px) {
+    .game-site-header-inner { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SITE NAV -->
+<header class="game-site-header">
+  <div class="game-site-header-inner">
+    <a href="../index.html" class="game-site-brand">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="5" fill="none" stroke="#ffd60a" stroke-width="2.5"/><path d="M13 12h8m-3 0v3m-2-3v2" stroke="#ffd60a" stroke-width="2.5" fill="none"/></svg>
+      <span>thedatasteward</span>
+    </a>
+    <a href="../index.html" class="game-back-link">← Back to home</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- HUD BAR (game stats) -->
+  <div class="topbar">
+    <div class="brand">
+      <span style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim);">Data Steward: The Game</span>
+    </div>
+    <div class="hud" id="hud" style="visibility:hidden;">
+      <div class="hud-stat">REP <span class="hud-value" id="hud-rep">0</span></div>
+      <div class="hud-stat">CASE <span class="hud-value" id="hud-case">0/0</span></div>
+    </div>
+  </div>
+
+  <!-- ============ START SCREEN ============ -->
+  <div class="start-screen" id="start-screen">
+    <div class="eyebrow">A Game by @thedatasteward · Approx. 5 min</div>
+    <h1 class="title">
+      Data Steward:<br>
+      <span class="stress">The Game.</span>
+    </h1>
+    <p class="lede">
+      You just took the Data Steward role at Northwind, a fast-growing
+      SaaS company. Your inbox is already a mess. Eight scenarios.
+      Eight calls to make. Your reputation is on the line.
+    </p>
+
+    <div class="rules">
+      <div class="rule">
+        <div class="rule-num">01</div>
+        <div class="rule-text">Read each scenario like it's a real Slack message — because it is.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">02</div>
+        <div class="rule-text">Pick the best response. There are no perfect answers — only better ones.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">03</div>
+        <div class="rule-text">+10 REP for great calls. +5 for okay ones. 0 for facepalms.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">04</div>
+        <div class="rule-text">At the end, share your score and challenge a teammate.</div>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startGame()">
+      <span>Start the Job</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <div class="game-screen" id="game-screen">
+    <div class="scenario-meta">
+      <span id="meta-case">CASE 01</span>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <span id="meta-rep">REP +0</span>
+    </div>
+
+    <div class="scenario-card">
+      <span class="scenario-tag" id="s-tag">SLACK · #data-help</span>
+      <div class="scenario-sender" id="s-sender">From: Maria · Marketing Director</div>
+      <h2 class="scenario-title" id="s-title">...</h2>
+      <p class="scenario-body" id="s-body">...</p>
+    </div>
+
+    <div class="choices-label">Your call</div>
+    <div class="choices" id="choices"></div>
+
+    <div class="feedback" id="feedback">
+      <div class="feedback-header">
+        <span class="feedback-verdict" id="fb-verdict">VERDICT</span>
+        <span class="feedback-points" id="fb-points">+10 REP</span>
+      </div>
+      <p class="feedback-body" id="fb-body"></p>
+      <p class="feedback-lesson" id="fb-lesson"></p>
+      <button class="next-btn" onclick="nextScenario()" id="next-btn">Next Case →</button>
+    </div>
+  </div>
+
+  <!-- ============ END SCREEN ============ -->
+  <div class="end-screen" id="end-screen">
+    <div class="verdict-eyebrow" id="end-eyebrow">CASE CLOSED</div>
+    <h1 class="verdict-title">Your verdict: <span class="accent" id="end-rank">...</span></h1>
+
+    <div class="score-display">
+      <span class="score-num" id="end-score">0</span>
+      <span class="score-of">/ 80 reputation points</span>
+    </div>
+
+    <p class="verdict-blurb" id="end-blurb">...</p>
+
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <div class="label">Great calls</div>
+        <div class="val green" id="end-great">0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="label">Okay calls</div>
+        <div class="val yellow" id="end-okay">0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="label">Facepalms</div>
+        <div class="val red" id="end-bad">0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="label">Time</div>
+        <div class="val" id="end-time">0:00</div>
+      </div>
+    </div>
+
+    <div class="end-actions">
+      <button class="start-btn" onclick="restartGame()">
+        <span>Play Again</span>
+        <span class="arrow">↻</span>
+      </button>
+      <button class="next-btn" onclick="copyShare()">Copy Share Text</button>
+    </div>
+
+    <div class="share-text" id="share-text"></div>
+    <div class="share-hint" id="share-hint">↑ Tap and hold to copy · paste into Stories</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>Data governance, in plain English.</span>
+    <span>@thedatasteward · 2026</span>
+  </div>
+
+</div>
+
+<script>
+  // ============ GAME DATA ============
+  // 8 scenarios, each with 3-4 choices and a "correct" rating per choice
+  // Ratings: 'good' (+10), 'okay' (+5), 'bad' (0)
+  const SCENARIOS = [
+    {
+      tag: 'SLACK · #data-help',
+      sender: 'From: Maria · Marketing Director',
+      title: 'Can you give me the customer list? I need it for a campaign.',
+      body: 'Maria messages: <strong>"Hey! Quick favor — I need the full customer email list export by EOD. Working with a new agency on a campaign and they need to load it into their tool. Just send the CSV when you can!"</strong>',
+      choices: [
+        { text: 'Export the CSV and DM it to her — she\'s a director, she\'s allowed.', rating: 'bad' },
+        { text: 'Ask which agency, what data they need, and whether there\'s a signed DPA in place before doing anything.', rating: 'good' },
+        { text: 'Send the file but only with names and emails, no other fields.', rating: 'okay' },
+        { text: 'Refuse outright — marketing shouldn\'t have customer data.', rating: 'bad' },
+      ],
+      lesson: 'A signed Data Processing Agreement (DPA) protects you AND the customer. "Quick favor" + customer PII + third party is the classic GDPR fine pattern.',
+      goodMsg: 'Exactly right. Before any PII leaves the building, you need to know: who, what, why, and where it\'s going. The DPA isn\'t bureaucracy — it\'s your defensible record.',
+      okayMsg: 'Better than nothing — limiting scope is smart. But you still skipped the DPA check, which is the real risk. The agency could still leak or misuse those emails.',
+      badMsg: 'Yikes. Sending PII to a third party without checking the legal/contractual basis is exactly how the €20M GDPR fines start. Director status doesn\'t override compliance.',
+    },
+    {
+      tag: 'EMAIL · From CFO',
+      sender: 'From: Raj · CFO',
+      title: 'Two dashboards. Two different revenue numbers.',
+      body: 'Raj forwards an email: <strong>"The board deck shows Q3 revenue at $4.2M. The Finance dashboard shows $4.05M. Which is right? Board meeting is tomorrow at 9am."</strong>',
+      choices: [
+        { text: 'Reply with whichever number looks higher — boards like growth.', rating: 'bad' },
+        { text: 'Investigate the source of each number, identify which one matches the source of truth, document the discrepancy, and reply with the verified figure plus an explanation.', rating: 'good' },
+        { text: 'Tell Raj to use the Finance dashboard since it\'s "more official."', rating: 'okay' },
+        { text: 'Reply "they\'re both probably right within rounding error."', rating: 'bad' },
+      ],
+      lesson: 'A board-facing discrepancy is exactly why source-of-truth definitions exist. Investigate, document, communicate. "Probably right" is how trust dies in 24 hours.',
+      goodMsg: 'Textbook. You identified the right scope (one number, one source of truth), did the work, and produced an audit trail. That\'s steward behavior at its best.',
+      okayMsg: 'Closer, but "more official" isn\'t a definition — it\'s a guess. The Finance dashboard might be wrong too. Always trace to the source of truth.',
+      badMsg: 'This is how organizations end up restating earnings. Boards need defensible numbers, not hand-waving. Even one wrong figure erodes trust permanently.',
+    },
+    {
+      tag: 'JIRA · Engineering',
+      sender: 'From: Sam · Senior Engineer',
+      title: 'We\'re training an ML model on production user data. Just FYI.',
+      body: 'Sam comments on a ticket: <strong>"For the recommendation engine, we copied last month\'s prod user data into the dev environment for model training. Working well so far. Closing this ticket."</strong>',
+      choices: [
+        { text: '👍 the comment. Engineering knows what they\'re doing.', rating: 'bad' },
+        { text: 'Reply asking whether the data was anonymized, whether users consented to ML use, and where the dev copy is now stored.', rating: 'good' },
+        { text: 'Tell Sam to delete the copy and re-run with synthetic data.', rating: 'okay' },
+        { text: 'Add it to the next governance review meeting agenda.', rating: 'okay' },
+      ],
+      lesson: 'Shadow data in dev environments is one of the most common (and most expensive) governance failures. Production data has a chain of custody. Dev environments often don\'t.',
+      goodMsg: 'You caught all three risks — anonymization, consent scope, and storage. The original consent likely didn\'t cover ML training, and prod copies in dev are an audit nightmare.',
+      okayMsg: 'Right instinct, but you skipped the diagnosis. Was it anonymized? Were users notified? Was the original consent scoped to include ML? "Delete it" without the why means the team will do it again.',
+      badMsg: 'Production data in dev environments is the #1 source of accidental data breaches. Engineering being smart doesn\'t mean they\'re thinking about consent, retention, or audit logs.',
+    },
+    {
+      tag: 'SLACK · DM',
+      sender: 'From: Olivia · New Junior Analyst',
+      title: '"Does this column mean what I think it means?"',
+      body: 'Olivia DMs: <strong>"Hey! I\'m building my first dashboard and the column `active_user` is confusing — some places it means logged in this week, others it means subscribed. Which one is right?"</strong>',
+      choices: [
+        { text: 'Tell her to use whichever definition feels right for her dashboard.', rating: 'bad' },
+        { text: 'Pull up the data catalog, find the canonical definition, share it with her, and add a clarifying note to the catalog if it\'s ambiguous.', rating: 'good' },
+        { text: 'Tell her both are technically right, just pick one and document it.', rating: 'okay' },
+        { text: 'Forward her message to the engineering team to figure out.', rating: 'bad' },
+      ],
+      lesson: 'Definition ambiguity is the most common (and most fixable) governance failure. Every "active user" Slack debate that wastes an hour is a missing catalog entry.',
+      goodMsg: 'Perfect. You used the existing system, helped her now, AND improved it for the next person. That\'s how governance scales without being top-down.',
+      okayMsg: 'Half-credit. Documenting is good, but if both definitions live in the wild, you\'ve just multiplied the confusion. Pick ONE canonical answer and route the other one to it.',
+      badMsg: 'A junior analyst asking the exact right question, and you\'ve sent her to figure it out alone. That\'s how governance dies — through small moments of "not my job."',
+    },
+    {
+      tag: 'EMAIL · From Sales',
+      sender: 'From: Diego · VP Sales',
+      title: '"Can you grant the new sales team access to the warehouse?"',
+      body: 'Diego emails: <strong>"We just onboarded 12 new account execs. Can you give them all access to the data warehouse so they can pull their own reports? Need this done today — they start Monday."</strong>',
+      choices: [
+        { text: 'Grant everyone full read access to the warehouse — fastest option.', rating: 'bad' },
+        { text: 'Provide read-only access scoped to sales-relevant tables (deals, accounts, contacts) — not the full warehouse — and set up an expiration review in 90 days.', rating: 'good' },
+        { text: 'Refuse — junior people shouldn\'t have warehouse access.', rating: 'bad' },
+        { text: 'Grant access to all of them but only to the curated "sales marts" layer.', rating: 'okay' },
+      ],
+      lesson: 'Least privilege isn\'t about distrust — it\'s about blast radius. If one of those 12 accounts gets phished, what data is exposed? Scope access to the actual job.',
+      goodMsg: 'Beautifully done. You enabled the team (read access to what they need), limited blast radius (scoped tables), and built in self-correction (90-day review).',
+      okayMsg: 'Close. The sales marts layer is the right scope, but without an access expiration or review, in 18 months you won\'t remember why those 12 people have access.',
+      badMsg: 'Either too loose (full access) or too restrictive (blanket no). Good governance enables work — it just enables it safely.',
+    },
+    {
+      tag: 'SLACK · #legal',
+      sender: 'From: Anita · Legal Counsel',
+      title: '"We got a GDPR data deletion request. Can you delete user 88432?"',
+      body: 'Anita pings: <strong>"User 88432 filed a Right to Erasure request via our website. We have 30 days. Can you confirm deletion across all systems?"</strong>',
+      choices: [
+        { text: 'Delete the row from the main customer table and mark the ticket done.', rating: 'bad' },
+        { text: 'Trace user 88432 across every system that touched their data (CRM, warehouse, backups, ML training sets, exports, third parties), delete or anonymize per policy, document each step.', rating: 'good' },
+        { text: 'Delete from the customer table and the CRM, and assume backups will rotate out eventually.', rating: 'okay' },
+        { text: 'Ask Anita to clarify which "systems" she means.', rating: 'bad' },
+      ],
+      lesson: 'Right to Erasure is the moment your data lineage gets tested. If you can\'t answer "where does User X\'s data live?" in 30 minutes, you have a lineage problem AND a fine waiting.',
+      goodMsg: 'This is what compliance teams dream of. Comprehensive trace, documented chain of custody. If audited, you have proof of due process.',
+      okayMsg: 'Partial credit. "Backups will rotate" is technically true, but GDPR wants documented action, not eventual decay. Also, what about the data you exported to that agency 3 months ago?',
+      badMsg: 'A deletion request isn\'t a "where" question — it\'s a "wherever the data went" question. If you don\'t know all the places, that itself is the problem.',
+    },
+    {
+      tag: 'DM · From CDO',
+      sender: 'From: Marcus · Chief Data Officer',
+      title: '"I want a governance scorecard for the exec team next month."',
+      body: 'Marcus DMs: <strong>"The exec team wants to see governance maturity. Can you build a scorecard showing where we are on each domain? Something visual, board-ready."</strong>',
+      choices: [
+        { text: 'Score everything as "Yellow" so nobody panics or gets too confident.', rating: 'bad' },
+        { text: 'Define 4-5 governance dimensions (ownership, definitions, access, quality, lineage), score each domain honestly using existing evidence, and flag where you need help.', rating: 'good' },
+        { text: 'Build a beautiful dashboard with scores, but base them mostly on vibes since data is hard to gather.', rating: 'bad' },
+        { text: 'Score only what you can defend with evidence; mark the rest as "TBD" until you can measure.', rating: 'okay' },
+      ],
+      lesson: 'Governance scorecards live or die on credibility. Vibes-based scores get torn apart in the first exec meeting. Evidence-based "we don\'t know yet" beats confident fiction.',
+      goodMsg: 'Honest, structured, and forward-looking. You\'ve given execs the truth AND the roadmap. That\'s how governance gets resourced.',
+      okayMsg: 'Defensible and humble — that\'s a real win. The only thing missing is the framework so execs can compare apples to apples across domains.',
+      badMsg: 'Performative scorecards are worse than no scorecards. The first time someone challenges a "Green" you can\'t defend, your credibility (and the program\'s) is gone.',
+    },
+    {
+      tag: 'INCIDENT · 11:47 PM',
+      sender: 'From: PagerDuty alert',
+      title: 'Customer table has 0 rows. Something deleted everything.',
+      body: 'Late-night alert: <strong>"customer table row count dropped from 482,103 to 0. Alert fired 2 min ago. Engineering on call is paged."</strong>',
+      choices: [
+        { text: 'Wait until morning — engineering will handle it.', rating: 'bad' },
+        { text: 'Join the incident channel, help confirm scope, ensure backups are being restored, document the timeline, and start drafting a stakeholder comms plan.', rating: 'good' },
+        { text: 'Tweet about the irony of a data steward whose data just vanished.', rating: 'bad' },
+        { text: 'Join the incident channel and offer to help with whatever\'s needed.', rating: 'okay' },
+      ],
+      lesson: 'Data incidents are a steward\'s Super Bowl. Engineering restores the data; the steward owns the trust. Without comms, customers find out from Twitter.',
+      goodMsg: 'You showed up as the calm professional. Scope, recovery, documentation, comms — that\'s the playbook. Tomorrow\'s post-mortem will go smoothly because of you.',
+      okayMsg: 'Showing up matters. But "whatever\'s needed" can mean watching engineers type. The steward\'s real job in an incident is comms, timeline, and learning capture.',
+      badMsg: 'Stewardship is a 24/7 mindset, not 9-to-5. Even if it\'s not your role to fix the data, it\'s your role to ensure the response is coordinated and the comms don\'t become a second crisis.',
+    },
+  ];
+
+  // ============ STATE ============
+  let state = {
+    currentIdx: 0,
+    score: 0,
+    great: 0,
+    okay: 0,
+    bad: 0,
+    startTime: null,
+    answered: false,
+  };
+
+  // ============ ELEMENTS ============
+  const el = (id) => document.getElementById(id);
+
+  // ============ FLOW ============
+  function startGame() {
+    state = { currentIdx: 0, score: 0, great: 0, okay: 0, bad: 0, startTime: Date.now(), answered: false };
+    el('start-screen').style.display = 'none';
+    el('end-screen').classList.remove('active');
+    el('game-screen').classList.add('active');
+    el('hud').style.visibility = 'visible';
+    renderScenario();
+  }
+
+  function renderScenario() {
+    const s = SCENARIOS[state.currentIdx];
+    state.answered = false;
+
+    el('meta-case').textContent = `CASE ${String(state.currentIdx + 1).padStart(2, '0')} / ${String(SCENARIOS.length).padStart(2, '0')}`;
+    el('meta-rep').textContent = `REP +${state.score}`;
+    el('hud-case').textContent = `${state.currentIdx + 1}/${SCENARIOS.length}`;
+    el('hud-rep').textContent = state.score;
+    el('progress-fill').style.right = `${100 - (state.currentIdx / SCENARIOS.length) * 100}%`;
+
+    el('s-tag').textContent = s.tag;
+    el('s-sender').textContent = s.sender;
+    el('s-title').textContent = s.title;
+    el('s-body').innerHTML = s.body;
+
+    const choicesEl = el('choices');
+    choicesEl.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D'];
+    s.choices.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="choice-letter">${letters[i]}</span><span class="choice-text">${c.text}</span>`;
+      btn.onclick = () => handleChoice(i);
+      choicesEl.appendChild(btn);
+    });
+
+    el('feedback').classList.remove('show', 'good', 'bad');
+  }
+
+  function handleChoice(idx) {
+    if (state.answered) return;
+    state.answered = true;
+    const s = SCENARIOS[state.currentIdx];
+    const choice = s.choices[idx];
+
+    // Score
+    let points = 0;
+    let verdict = '';
+    let cls = '';
+    if (choice.rating === 'good') { points = 10; verdict = 'GREAT CALL'; cls = 'good'; state.great++; }
+    else if (choice.rating === 'okay') { points = 5; verdict = 'OKAY CALL'; cls = ''; state.okay++; }
+    else { points = 0; verdict = 'FACEPALM'; cls = 'bad'; state.bad++; }
+
+    state.score += points;
+    el('hud-rep').textContent = state.score;
+
+    // Disable + color choices
+    document.querySelectorAll('.choice').forEach((btn, i) => {
+      btn.classList.add('disabled');
+      const r = s.choices[i].rating;
+      if (i === idx) {
+        if (r === 'good') btn.classList.add('correct');
+        else if (r === 'bad') btn.classList.add('wrong');
+      } else if (r === 'good') {
+        btn.classList.add('correct');
+      }
+    });
+
+    // Show feedback
+    const fb = el('feedback');
+    fb.className = 'feedback show ' + cls;
+    el('fb-verdict').textContent = verdict;
+    el('fb-points').textContent = `+${points} REP`;
+    el('fb-body').textContent =
+      choice.rating === 'good' ? s.goodMsg
+      : choice.rating === 'okay' ? s.okayMsg
+      : s.badMsg;
+    el('fb-lesson').textContent = '"' + s.lesson + '"';
+
+    // Smooth scroll to feedback
+    setTimeout(() => fb.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+
+  function nextScenario() {
+    state.currentIdx++;
+    if (state.currentIdx >= SCENARIOS.length) {
+      showEnd();
+    } else {
+      renderScenario();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function showEnd() {
+    el('game-screen').classList.remove('active');
+    el('end-screen').classList.add('active');
+
+    // Rank
+    let rank = '';
+    let blurb = '';
+    let eyebrow = '';
+    if (state.score >= 70) {
+      rank = 'Master Steward';
+      blurb = 'Cool under pressure. Defensible decisions. The CDO is taking notes from you.';
+      eyebrow = 'PROMOTED';
+    } else if (state.score >= 55) {
+      rank = 'Solid Steward';
+      blurb = 'You\'d survive an audit and most exec meetings. A few sharp edges to sand down.';
+      eyebrow = 'CONFIRMED';
+    } else if (state.score >= 35) {
+      rank = 'Apprentice';
+      blurb = 'You\'re learning fast, but a few of those calls would haunt your annual review.';
+      eyebrow = 'ON PROBATION';
+    } else {
+      rank = 'Cautionary Tale';
+      blurb = 'Read the Starter Kit. Then come back. We\'re rooting for you.';
+      eyebrow = 'CASE CLOSED';
+    }
+
+    el('end-eyebrow').textContent = eyebrow;
+    el('end-rank').textContent = rank;
+    el('end-score').textContent = state.score;
+    el('end-blurb').textContent = blurb;
+    el('end-great').textContent = state.great;
+    el('end-okay').textContent = state.okay;
+    el('end-bad').textContent = state.bad;
+
+    const elapsedMs = Date.now() - state.startTime;
+    const min = Math.floor(elapsedMs / 60000);
+    const sec = Math.floor((elapsedMs % 60000) / 1000);
+    el('end-time').textContent = `${min}:${String(sec).padStart(2, '0')}`;
+
+    // Share text
+    const shareTxt = `I scored ${state.score}/80 on Data Steward: The Game.
+
+Rank: ${rank}
+✓ ${state.great} great calls
+~ ${state.okay} okay calls
+✗ ${state.bad} facepalms
+
+Think you can beat me? Play at @thedatasteward`;
+    el('share-text').textContent = shareTxt;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function restartGame() {
+    startGame();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function copyShare() {
+    const txt = el('share-text').textContent;
+    navigator.clipboard.writeText(txt).then(() => {
+      const hint = el('share-hint');
+      const orig = hint.textContent;
+      hint.textContent = '✓ COPIED — PASTE INTO STORIES OR DM';
+      setTimeout(() => { hint.textContent = orig; }, 2500);
+    }).catch(() => {
+      // Fallback for mobile - just select the text
+      const range = document.createRange();
+      range.selectNode(el('share-text'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    });
+  }
+</script>
+</body>
+</html>

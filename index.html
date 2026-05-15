@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Data Steward — Data governance, in plain English.</title>
+<meta name="description" content="Data governance, in plain English. Free starter kit, an interactive game, and clear-headed tips for data professionals.">
+<meta property="og:title" content="The Data Steward">
+<meta property="og:description" content="Data governance, in plain English.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  /* =============================================================
+     HERO
+     ============================================================= */
+  .hero {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 80px 32px 60px;
+    position: relative;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 80px;
+    align-items: end;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(56px, 9vw, 120px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin: 32px 0 32px;
+  }
+  .hero-title .stress {
+    color: var(--yellow);
+    font-style: italic;
+    font-weight: 900;
+  }
+  .hero-title .line {
+    display: block;
+  }
+
+  .hero-lede {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 2.3vw, 26px);
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin-bottom: 48px;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .hero-meta {
+    border-left: 1px solid var(--line);
+    padding-left: 40px;
+    padding-bottom: 8px;
+  }
+
+  .hero-meta-row {
+    margin-bottom: 32px;
+  }
+  .hero-meta-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .hero-meta-value {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .hero-meta-value.yellow { color: var(--yellow); }
+
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+    .hero-meta { border-left: none; border-top: 1px solid var(--line); padding-left: 0; padding-top: 32px; }
+    .hero { padding: 60px 20px 40px; }
+  }
+
+  /* =============================================================
+     MANIFESTO
+     ============================================================= */
+  .manifesto {
+    max-width: var(--content-max);
+    margin: 80px auto;
+    padding: 80px 32px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .manifesto::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 32px;
+    font-family: var(--font-display);
+    font-size: 200px;
+    color: var(--yellow);
+    line-height: 1;
+    opacity: 0.15;
+  }
+
+  .manifesto-text {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--text);
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  .manifesto-text em {
+    color: var(--yellow);
+    font-style: italic;
+  }
+  .manifesto-text .strike {
+    text-decoration: line-through;
+    text-decoration-color: var(--red);
+    text-decoration-thickness: 4px;
+    color: var(--text-dim);
+  }
+
+  @media (max-width: 720px) {
+    .manifesto { padding: 60px 20px; margin: 60px auto; }
+  }
+
+  /* =============================================================
+     SECTIONS GRID
+     ============================================================= */
+  .sections {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  .section-header {
+    margin-bottom: 48px;
+  }
+  .section-header h2 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 68px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-top: 16px;
+  }
+  .section-header h2 .accent { color: var(--yellow); font-style: italic; }
+
+  /* Featured cards - asymmetric grid */
+  .features {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+
+  .feature-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    min-height: 380px;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 80px; height: 4px;
+    background: var(--yellow);
+    transition: width 0.4s;
+  }
+  .feature-card:hover::before { width: 100%; }
+  .feature-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0 var(--line-strong);
+    border-color: var(--yellow);
+  }
+
+  .feature-card.dark {
+    background: var(--bg-3);
+  }
+
+  .feature-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .feature-tag .dot {
+    width: 8px; height: 8px;
+    background: var(--teal);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .feature-title {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+  .feature-title .yellow { color: var(--yellow); }
+
+  .feature-body {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: auto;
+    max-width: 480px;
+  }
+
+  .feature-cta {
+    margin-top: 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    transition: gap 0.2s;
+  }
+  .feature-card:hover .feature-cta { gap: 20px; }
+  .feature-cta .arrow { font-size: 18px; }
+
+  /* Stats inside cards */
+  .feature-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .feature-stat .num {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--yellow);
+    line-height: 1;
+  }
+  .feature-stat .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  /* Three-column secondary grid */
+  .features-secondary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 32px;
+  }
+
+  .feature-card.small {
+    min-height: 280px;
+    padding: 32px;
+  }
+  .feature-card.small .feature-title { font-size: 22px; }
+  .feature-card.small .feature-body { font-size: 14px; }
+
+  .feature-card.coming-soon {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .feature-card.coming-soon::before { background: var(--text-dim); }
+
+  @media (max-width: 900px) {
+    .features { grid-template-columns: 1fr; }
+    .features-secondary { grid-template-columns: 1fr; }
+    .sections { padding: 0 20px; }
+    .feature-card { min-height: auto; padding: 32px; }
+  }
+
+  /* =============================================================
+     LATEST / INSTAGRAM TEASER
+     ============================================================= */
+  .latest {
+    max-width: var(--content-max);
+    margin: 120px auto 0;
+    padding: 0 32px;
+  }
+
+  .latest-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .latest-text h2 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 16px 0 24px;
+  }
+  .latest-text h2 .accent { color: var(--yellow); font-style: italic; }
+
+  .latest-text p {
+    font-family: var(--font-body);
+    font-size: 17px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 32px;
+    max-width: 480px;
+  }
+
+  .latest-mockup {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 32px;
+    position: relative;
+  }
+
+  .latest-mockup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+  .latest-mockup-avatar {
+    width: 40px; height: 40px;
+    background: var(--bg-3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .latest-mockup-name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .latest-mockup-handle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .latest-mockup-text {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 20px;
+  }
+
+  .latest-mockup-meta {
+    display: flex;
+    gap: 24px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .latest-grid { grid-template-columns: 1fr; }
+    .latest { padding: 0 20px; margin-top: 80px; }
+  }
+
+  /* =============================================================
+     CONTACT / CTA
+     ============================================================= */
+  .contact {
+    max-width: var(--content-max);
+    margin: 120px auto 0;
+    padding: 80px 32px;
+    border: 1px solid var(--line);
+    text-align: center;
+    background:
+      radial-gradient(circle at center, rgba(255, 214, 10, 0.04), transparent 70%);
+  }
+
+  .contact h2 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 16px 0 24px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .contact h2 .accent { color: var(--yellow); font-style: italic; }
+
+  .contact p {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-width: 560px;
+    margin: 0 auto 40px;
+  }
+
+  .contact-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 720px) {
+    .contact { padding: 60px 20px; margin: 80px 20px 0; }
+  }
+
+  /* =============================================================
+     TIPS PREVIEW (coming soon teaser)
+     ============================================================= */
+  .tips-strip {
+    max-width: var(--content-max);
+    margin: 120px auto 0;
+    padding: 0 32px;
+  }
+
+  .tips-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--line);
+  }
+
+  .tip {
+    padding: 32px 28px;
+    border-right: 1px solid var(--line);
+    transition: background 0.2s;
+    position: relative;
+  }
+  .tip:last-child { border-right: none; }
+  .tip:hover { background: var(--bg-2); }
+
+  .tip-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--yellow);
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  .tip-text {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text);
+  }
+
+  @media (max-width: 900px) {
+    .tips-list { grid-template-columns: 1fr 1fr; }
+    .tip:nth-child(2n) { border-right: none; }
+    .tip:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  }
+  @media (max-width: 540px) {
+    .tips-list { grid-template-columns: 1fr; }
+    .tip { border-right: none; border-bottom: 1px solid var(--line); }
+    .tip:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="index.html" class="site-brand">
+      <svg class="site-key" viewBox="0 0 24 24">
+        <circle cx="8" cy="12" r="5" fill="none" stroke="#ffd60a" stroke-width="2.5"/>
+        <path d="M13 12h8m-3 0v3m-2-3v2" stroke="#ffd60a" stroke-width="2.5" fill="none"/>
+      </svg>
+      <span>thedatasteward</span>
+    </a>
+    <nav class="site-nav">
+      <a href="#features">Features</a>
+      <a href="game/index.html">Game</a>
+      <a href="starter-kit/index.html">Starter Kit</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="starter-kit/index.html" class="site-cta">Get the Kit</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow reveal reveal-1">Issue 01 · A field guide to data work</div>
+        <h1 class="hero-title">
+          <span class="line reveal reveal-2">Data governance,</span>
+          <span class="line reveal reveal-3">in <span class="stress">plain English.</span></span>
+        </h1>
+        <p class="hero-lede reveal reveal-4">
+          For data engineers, analysts, and DPOs who are tired of binders nobody reads and frameworks that don't ship. Real tools for real teams.
+        </p>
+        <div class="hero-actions reveal reveal-5">
+          <a href="starter-kit/index.html" class="button-primary">
+            <span>Free Starter Kit</span>
+            <span>→</span>
+          </a>
+          <a href="game/index.html" class="button-secondary">
+            <span>Play the Game</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-meta reveal reveal-6">
+        <div class="hero-meta-row">
+          <div class="hero-meta-label">By</div>
+          <div class="hero-meta-value">@thedatasteward</div>
+        </div>
+        <div class="hero-meta-row">
+          <div class="hero-meta-label">Topic</div>
+          <div class="hero-meta-value">Data Governance</div>
+        </div>
+        <div class="hero-meta-row">
+          <div class="hero-meta-label">Cadence</div>
+          <div class="hero-meta-value yellow">New post every 2 days</div>
+        </div>
+        <div class="hero-meta-row">
+          <div class="hero-meta-label">Format</div>
+          <div class="hero-meta-value">Carousels · Reels · Tools</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto">
+    <p class="manifesto-text">
+      Data governance isn't a <span class="strike">binder of policies</span>.<br>
+      It's the <em>operating system</em> for how your org uses data.
+    </p>
+  </section>
+
+  <!-- FEATURED SECTIONS -->
+  <section class="sections" id="features">
+    <div class="section-header">
+      <div class="eyebrow">What's here</div>
+      <h2>Built for <span class="accent">data folks</span>.</h2>
+    </div>
+
+    <!-- Top featured: 2 cards -->
+    <div class="features">
+      <!-- Big card: The Game -->
+      <a href="game/index.html" class="feature-card dark">
+        <div class="feature-tag">
+          <span class="dot"></span>
+          New · Interactive
+        </div>
+        <h3 class="feature-title">
+          Data Steward:<br>
+          <span class="yellow">The Game.</span>
+        </h3>
+        <p class="feature-body">
+          You just took the Data Steward role at Northwind. Eight scenarios from your inbox. Eight calls to make. Find out if you'd survive.
+        </p>
+        <div class="feature-stats">
+          <div class="feature-stat">
+            <div class="num">8</div>
+            <div class="label">Scenarios</div>
+          </div>
+          <div class="feature-stat">
+            <div class="num">~5</div>
+            <div class="label">Minutes</div>
+          </div>
+          <div class="feature-stat">
+            <div class="num">80</div>
+            <div class="label">Max REP</div>
+          </div>
+        </div>
+        <span class="feature-cta">
+          Play now <span class="arrow">→</span>
+        </span>
+      </a>
+
+      <!-- Starter Kit card -->
+      <a href="starter-kit/index.html" class="feature-card">
+        <div class="feature-tag">Free · PDF</div>
+        <h3 class="feature-title">The 6-Step <span class="yellow">Starter Kit.</span></h3>
+        <p class="feature-body">
+          A practical, no-fluff guide to start a governance program. Six steps. One per workday. By Friday you'll have the bones of a real program.
+        </p>
+        <div class="feature-stats">
+          <div class="feature-stat">
+            <div class="num">10</div>
+            <div class="label">Pages</div>
+          </div>
+          <div class="feature-stat">
+            <div class="num">$0</div>
+            <div class="label">Price</div>
+          </div>
+        </div>
+        <span class="feature-cta">
+          Download <span class="arrow">→</span>
+        </span>
+      </a>
+    </div>
+
+    <!-- Secondary: 3 small cards -->
+    <div class="features-secondary">
+      <a href="https://instagram.com/thedatasteward" target="_blank" rel="noopener" class="feature-card small">
+        <div class="feature-tag">Instagram</div>
+        <h3 class="feature-title">New post every 2 days.</h3>
+        <p class="feature-body">
+          Carousels, Reels, and quick tips that respect your inbox and your intelligence.
+        </p>
+        <span class="feature-cta">@thedatasteward <span class="arrow">→</span></span>
+      </a>
+
+      <div class="feature-card small coming-soon">
+        <div class="feature-tag">Coming soon</div>
+        <h3 class="feature-title">Plain-English glossary.</h3>
+        <p class="feature-body">
+          Every governance term that gets used to gatekeep, explained in one paragraph.
+        </p>
+        <span class="feature-cta">In progress</span>
+      </div>
+
+      <div class="feature-card small coming-soon">
+        <div class="feature-tag">Coming soon</div>
+        <h3 class="feature-title">Tips library.</h3>
+        <p class="feature-body">
+          A searchable archive of every tip, lesson, and war story I've published — without the algorithm.
+        </p>
+        <span class="feature-cta">In progress</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIPS STRIP (teaser of what's coming) -->
+  <section class="tips-strip">
+    <div class="section-header">
+      <div class="eyebrow">From recent posts</div>
+      <h2>What you'll <span class="accent">actually</span> learn.</h2>
+    </div>
+
+    <div class="tips-list">
+      <div class="tip">
+        <div class="tip-num">TIP 01</div>
+        <div class="tip-text">Don't try to govern everything. Pick one domain.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">TIP 02</div>
+        <div class="tip-text">"The data team owns it" means nobody owns it.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">TIP 03</div>
+        <div class="tip-text">Five definitions beat fifty. Start small.</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">TIP 04</div>
+        <div class="tip-text">Three quality checks you act on > fifty you ignore.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST FROM INSTAGRAM -->
+  <section class="latest">
+    <div class="latest-grid">
+      <div class="latest-text">
+        <div class="eyebrow">Where I publish</div>
+        <h2>Find me on <span class="accent">Instagram</span>.</h2>
+        <p>
+          The main feed is on Instagram — three posts every two days, mixing carousels, Reels, and Stories. This site is the calm, evergreen version. Both work together.
+        </p>
+        <a href="https://instagram.com/thedatasteward" target="_blank" rel="noopener" class="button-primary">
+          <span>Follow @thedatasteward</span>
+          <span>→</span>
+        </a>
+      </div>
+
+      <div class="latest-mockup">
+        <div class="latest-mockup-header">
+          <div class="latest-mockup-avatar">
+            <svg width="22" height="22" viewBox="0 0 24 24">
+              <circle cx="8" cy="12" r="5" fill="none" stroke="#ffd60a" stroke-width="2.5"/>
+              <path d="M13 12h8m-3 0v3m-2-3v2" stroke="#ffd60a" stroke-width="2.5" fill="none"/>
+            </svg>
+          </div>
+          <div>
+            <div class="latest-mockup-name">The Data Steward</div>
+            <div class="latest-mockup-handle">@thedatasteward</div>
+          </div>
+        </div>
+        <div class="latest-mockup-text">
+          "Ever sat in a meeting where two dashboards showed two different numbers for the same KPI? That's a data governance problem."
+        </div>
+        <div class="latest-mockup-meta">
+          <span>Carousel · 6 slides</span>
+          <span>· Save it ↗</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="eyebrow">Get in touch</div>
+    <h2>Got a question, war story, or <span class="accent">a take</span>?</h2>
+    <p>
+      DMs on Instagram are open. Real questions get real answers — no contact forms, no spam-bots. I read everything.
+    </p>
+    <div class="contact-actions">
+      <a href="https://instagram.com/thedatasteward" target="_blank" rel="noopener" class="button-primary">
+        <span>DM on Instagram</span>
+        <span>→</span>
+      </a>
+      <a href="mailto:thedatasteward@gmail.com" class="button-secondary">
+        <span>Email</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <p class="footer-tagline">"Data governance, in <em style="color:#ffd60a;">plain English</em>."</p>
+    </div>
+    <div>
+      <div class="footer-block-title">Site</div>
+      <a href="index.html" class="footer-link">Home</a>
+      <a href="game/index.html" class="footer-link">The Game</a>
+      <a href="starter-kit/index.html" class="footer-link">Starter Kit</a>
+      <a href="#contact" class="footer-link">Contact</a>
+    </div>
+    <div>
+      <div class="footer-block-title">Elsewhere</div>
+      <a href="https://instagram.com/thedatasteward" target="_blank" rel="noopener" class="footer-link">Instagram</a>
+      <a href="mailto:thedatasteward@gmail.com" class="footer-link">Email</a>
+    </div>
+  </div>
+  <div class="site-footer-bottom">
+    <span>© 2026 · The Data Steward</span>
+    <span>Built with care · Hosted on GitHub Pages</span>
+  </div>
+</footer>
+
+</body>
+</html>
