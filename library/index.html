@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library — The Data Steward</title>
+<meta name="description" content="Free PDFs, templates, and guides for data stewards — by The Data Steward.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  :root {
+    --bg: #0a1628;
+    --bg-2: #12233c;
+    --bg-3: #1a2d4a;
+    --line: rgba(180,195,215,0.12);
+    --line-strong: rgba(255,214,10,0.4);
+    --text: #ffffff;
+    --text-muted: #b4c3d7;
+    --text-dim: #6b7d99;
+    --yellow: #ffd60a;
+    --teal: #00d9c0;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px; opacity: 0.5; pointer-events: none;
+  }
+  main.hub { position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding: 60px 24px 80px; }
+  .hub-eyebrow {
+    font-family: var(--font-mono); font-size: 12px; color: var(--yellow);
+    letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .hub-title {
+    font-family: var(--font-display); font-weight: 700; font-size: 48px;
+    line-height: 1.05; margin-bottom: 16px;
+  }
+  .hub-title .accent { color: var(--yellow); font-style: italic; }
+  .hub-sub {
+    color: var(--text-muted); font-size: 18px; line-height: 1.55;
+    max-width: 640px; margin-bottom: 48px;
+  }
+  .doc-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .doc-card {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px; text-decoration: none; color: var(--text);
+    display: flex; flex-direction: column; gap: 14px;
+    transition: all 0.2s;
+  }
+  .doc-card:hover {
+    border-color: var(--line-strong); transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+  }
+  .doc-card .type-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .doc-card .type { color: var(--yellow); }
+  .doc-card .price { color: var(--text-dim); }
+  .doc-card h3 {
+    font-family: var(--font-display); font-size: 26px; font-weight: 600; line-height: 1.15;
+  }
+  .doc-card h3 .yellow { color: var(--yellow); }
+  .doc-card p {
+    color: var(--text-muted); font-size: 14.5px; line-height: 1.55; flex: 1;
+  }
+  .doc-card .meta {
+    display: flex; gap: 18px; font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim); padding-top: 12px; border-top: 1px solid var(--line);
+  }
+  .doc-card .meta span strong { color: var(--text); font-weight: 600; }
+  .doc-card .cta {
+    font-family: var(--font-mono); font-size: 12px; color: var(--yellow);
+    letter-spacing: 0.05em; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .coming-soon {
+    border-style: dashed; opacity: 0.55; cursor: default;
+  }
+  .coming-soon:hover { transform: none; box-shadow: none; border-color: var(--line); }
+  .coming-soon .type { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="../index.html" class="site-brand">
+      <svg class="site-key" viewBox="0 0 24 24">
+        <circle cx="8" cy="12" r="5" fill="none" stroke="#ffd60a" stroke-width="2.5"/>
+        <path d="M13 12h8m-3 0v3m-2-3v2" stroke="#ffd60a" stroke-width="2.5" fill="none"/>
+      </svg>
+      <span>thedatasteward</span>
+    </a>
+    <nav class="site-nav">
+      <a href="../index.html">Home</a>
+      <a href="../games/index.html">Games</a>
+      <a href="index.html" class="active">Library</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+    <a href="starter-kit/index.html" class="site-cta">Get the Kit</a>
+  </div>
+</header>
+
+<main class="hub">
+  <div class="hub-eyebrow">READ · DOWNLOAD · STEAL</div>
+  <h1 class="hub-title">Practical docs, <span class="accent">freely given.</span></h1>
+  <p class="hub-sub">
+    PDFs, templates, and field guides for data stewards. Made for the messy
+    middle — where the policy meets the Slack message at 4:55pm on a Friday.
+  </p>
+
+  <div class="doc-grid">
+
+    <a href="starter-kit/index.html" class="doc-card">
+      <div class="type-row"><span class="type">PDF · Guide</span><span class="price">Free</span></div>
+      <h3>The 6-Step <span class="yellow">Starter Kit.</span></h3>
+      <p>A practical, no-fluff guide to start a governance program. Six steps. One per workday. By Friday you'll have the bones of a real program.</p>
+      <div class="meta">
+        <span><strong>10</strong> pages</span>
+        <span><strong>1</strong> workweek</span>
+        <span><strong>$0</strong></span>
+      </div>
+      <span class="cta">Read & download →</span>
+    </a>
+
+    <div class="doc-card coming-soon">
+      <div class="type-row"><span class="type">Soon</span><span class="price">Free</span></div>
+      <h3>Data Catalog <span class="yellow">Field Guide.</span></h3>
+      <p>How to pick, populate, and actually maintain a data catalog so it doesn't become a ghost town. Coming next.</p>
+      <div class="meta"><span>In development</span></div>
+    </div>
+
+    <div class="doc-card coming-soon">
+      <div class="type-row"><span class="type">Soon</span><span class="price">Free</span></div>
+      <h3>Incident Comms <span class="yellow">Templates.</span></h3>
+      <p>Copy-paste-ready Slack and email templates for the first 60 minutes of a data incident. The stuff you don't want to write while paged.</p>
+      <div class="meta"><span>In development</span></div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

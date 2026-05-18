@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lineage Hunt — The Data Steward</title>
+<meta name="description" content="A GDPR Right-to-Erasure mini-game. Trace a user's data across systems and apply the right action before time runs out.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1628;
+    --bg-2: #12233c;
+    --bg-3: #1a2d4a;
+    --line: rgba(180, 195, 215, 0.12);
+    --line-strong: rgba(255, 214, 10, 0.4);
+    --text: #ffffff;
+    --text-muted: #b4c3d7;
+    --text-dim: #6b7d99;
+    --yellow: #ffd60a;
+    --teal: #00d9c0;
+    --red: #ff6363;
+    --green: #6edc8c;
+    --magenta: #ff7ad9;
+    --shadow: 0 20px 60px rgba(0,0,0,0.4);
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 1;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .brand:hover { color: var(--yellow); }
+  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); }
+
+  .hud {
+    display: flex;
+    gap: 18px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .hud-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    min-width: 78px;
+  }
+  .hud-label { font-size: 9px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; }
+  .hud-value { color: var(--yellow); font-weight: 700; font-size: 16px; }
+  .hud-value.green { color: var(--green); }
+  .hud-value.red { color: var(--red); }
+
+  /* TITLE */
+  .case-banner {
+    background: linear-gradient(135deg, var(--bg-2), var(--bg-3));
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--yellow);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+  }
+  .case-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--yellow);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .case-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+  .case-body {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .user-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255, 214, 10, 0.12);
+    color: var(--yellow);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 214, 10, 0.3);
+  }
+
+  /* MAIN LAYOUT */
+  .play {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 18px;
+    flex: 1;
+  }
+  @media (max-width: 900px) {
+    .play { grid-template-columns: 1fr; }
+  }
+
+  .canvas-wrap {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+    position: relative;
+    min-height: 460px;
+  }
+  svg.graph {
+    width: 100%;
+    height: 520px;
+    display: block;
+    touch-action: none;
+  }
+  @media (max-width: 900px) {
+    svg.graph { height: 440px; }
+  }
+
+  .legend {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    pointer-events: none;
+    background: rgba(10, 22, 40, 0.7);
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend .sw { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  /* PANEL */
+  .panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel h3 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .node-info {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .node-info .ni-label {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .node-info .ni-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .node-info .ni-status {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    min-height: 40px;
+  }
+  .node-info .ni-status .pill {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    margin-right: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .pill.unknown { background: rgba(180,195,215,0.15); color: var(--text-muted); }
+  .pill.contaminated { background: rgba(255,99,99,0.18); color: var(--red); }
+  .pill.clean { background: rgba(110,220,140,0.15); color: var(--green); }
+  .pill.handled { background: rgba(255,214,10,0.18); color: var(--yellow); }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .act {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.15s;
+  }
+  .act:hover:not(:disabled) {
+    border-color: var(--yellow);
+    background: var(--bg-2);
+    transform: translateX(2px);
+  }
+  .act:disabled { opacity: 0.35; cursor: not-allowed; }
+  .act .cost {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .act.primary { border-color: rgba(255,214,10,0.35); }
+  .act.danger:hover:not(:disabled) { border-color: var(--red); }
+
+  .log {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    max-height: 140px;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+  .log .log-entry { margin-bottom: 2px; }
+  .log .log-entry.good { color: var(--green); }
+  .log .log-entry.bad { color: var(--red); }
+  .log .log-entry.info { color: var(--text-dim); }
+
+  .level-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    flex: 1;
+    background: var(--yellow);
+    color: var(--bg);
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--line);
+  }
+
+  /* SVG node styles */
+  .node-g { cursor: pointer; }
+  .node-g .node-bg {
+    fill: var(--bg-3);
+    stroke: var(--text-dim);
+    stroke-width: 1.5;
+    transition: all 0.2s;
+  }
+  .node-g.unknown .node-bg { fill: var(--bg-3); stroke: var(--text-dim); stroke-dasharray: 4 3; }
+  .node-g.contaminated .node-bg { fill: rgba(255,99,99,0.18); stroke: var(--red); }
+  .node-g.clean .node-bg { fill: rgba(110,220,140,0.12); stroke: var(--green); }
+  .node-g.handled .node-bg { fill: rgba(255,214,10,0.15); stroke: var(--yellow); }
+  .node-g.selected .node-bg {
+    stroke-width: 3;
+    filter: drop-shadow(0 0 10px rgba(255,214,10,0.5));
+  }
+  .node-g:hover .node-bg { filter: brightness(1.2); }
+  .node-g text.node-label {
+    fill: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-anchor: middle;
+    pointer-events: none;
+    font-weight: 500;
+  }
+  .node-g text.node-sub {
+    fill: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .node-g .node-icon {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    text-anchor: middle;
+    pointer-events: none;
+    fill: var(--text);
+  }
+  .edge {
+    stroke: var(--text-dim);
+    stroke-width: 1.5;
+    fill: none;
+    opacity: 0.35;
+    transition: all 0.3s;
+  }
+  .edge.revealed { opacity: 1; stroke: var(--yellow); stroke-dasharray: none; }
+  .edge.hidden { stroke-dasharray: 3 4; opacity: 0.15; }
+
+  /* MODAL */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 22, 40, 0.85);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 20px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 560px;
+    width: 100%;
+    box-shadow: var(--shadow);
+  }
+  .modal h2 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.15;
+  }
+  .modal .briefing {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .modal .briefing strong { color: var(--yellow); font-weight: 600; }
+  .modal .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 18px 0;
+  }
+  .modal .stat-box {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+  .modal .stat-box .v { font-family: var(--font-mono); font-size: 22px; color: var(--yellow); font-weight: 700; }
+  .modal .stat-box .l { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+  .modal .lesson {
+    background: rgba(0, 217, 192, 0.08);
+    border-left: 3px solid var(--teal);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.55;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+  .modal-actions { display: flex; gap: 10px; }
+
+  /* HINT BUBBLE */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-3);
+    border: 1px solid var(--yellow);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    z-index: 20;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  footer {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  footer a { color: var(--text-muted); text-decoration: none; }
+  footer a:hover { color: var(--yellow); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="topbar">
+    <a class="brand" href="../../index.html">
+      <span class="dot"></span>
+      THE DATA STEWARD · LINEAGE HUNT
+    </a>
+    <div class="hud">
+      <div class="hud-stat">
+        <span class="hud-label">Level</span>
+        <span class="hud-value" id="hud-level">1 / 3</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Days Left</span>
+        <span class="hud-value" id="hud-days">30</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Trust</span>
+        <span class="hud-value green" id="hud-trust">100</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Handled</span>
+        <span class="hud-value" id="hud-handled">0 / 0</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="case-banner">
+    <div class="case-tag" id="case-tag">CASE FILE · GDPR ART. 17</div>
+    <div class="case-title" id="case-title">Right to Erasure — User <span class="user-chip" id="case-user">#88432</span></div>
+    <div class="case-body" id="case-body">Trace the user's data across every system. Apply the right action to each node before time runs out.</div>
+  </div>
+
+  <div class="play">
+    <div class="canvas-wrap">
+      <svg class="graph" id="graph" viewBox="0 0 800 540" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend">
+        <span><span class="sw" style="background: var(--text-dim);"></span>Unknown</span>
+        <span><span class="sw" style="background: var(--red);"></span>Contaminated</span>
+        <span><span class="sw" style="background: var(--green);"></span>Clean</span>
+        <span><span class="sw" style="background: var(--yellow);"></span>Handled</span>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div>
+        <h3>Selected node</h3>
+        <div class="node-info" id="node-info">
+          <div class="ni-label">No node selected</div>
+          <div class="ni-meta">Click any node on the map</div>
+          <div class="ni-status">Start with <strong>Scan</strong>. Scanning a node reveals whether the user's data is there and exposes its downstream lineage.</div>
+        </div>
+      </div>
+
+      <div>
+        <h3>Actions</h3>
+        <div class="actions" id="actions">
+          <button class="act primary" data-act="scan">Scan node <span class="cost">1 day</span></button>
+          <button class="act" data-act="delete">Delete data <span class="cost">2 days</span></button>
+          <button class="act" data-act="anonymize">Anonymize <span class="cost">3 days</span></button>
+          <button class="act" data-act="dpa">Request 3rd-party deletion <span class="cost">4 days</span></button>
+          <button class="act danger" data-act="finish">Submit & close case</button>
+        </div>
+      </div>
+
+      <div>
+        <h3>Activity log</h3>
+        <div class="log" id="log"></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <a href="../index.html">← All games</a> &nbsp; · &nbsp;
+    <a href="../quiz/index.html">The Quiz</a> &nbsp; · &nbsp;
+    <a href="../../index.html">@thedatasteward</a>
+  </footer>
+</div>
+
+<!-- BRIEFING / RESULT MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Level 1 — The First Trace</h2>
+    <div class="briefing" id="modal-briefing"></div>
+    <div class="stats" id="modal-stats" style="display:none;"></div>
+    <div class="lesson" id="modal-lesson"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="modal-secondary" style="display:none;">Replay</button>
+      <button class="btn" id="modal-primary">Begin</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================================
+// LINEAGE HUNT — interactive GDPR data-trace mini-game
+// =============================================================
+
+// Action costs (in days)
+const COST = { scan: 1, delete: 2, anonymize: 3, dpa: 4 };
+
+// Levels. Nodes are placed on an 800x540 canvas.
+// edges: hidden until either source or target is scanned.
+// required: the correct action for contaminated nodes ('delete' | 'anonymize' | 'dpa' | null for clean nodes).
+const LEVELS = [
+  {
+    title: 'Level 1 — The First Trace',
+    user: '#88432',
+    days: 18,
+    briefing: 'User <strong>#88432</strong> filed a Right to Erasure request. Four systems may hold their data. <strong>Scan</strong> each to check, then apply the correct action. Deletion isn\'t always allowed — financial records must legally be retained (anonymize instead).',
+    lesson: 'Right to Erasure isn\'t one DELETE statement. It\'s a hunt across every system that touched the user — and a judgment call on each one.',
+    nodes: [
+      { id: 'crm',  label: 'CRM',           sub: 'Hubspot',     x: 130, y: 110, contaminated: true,  required: 'delete' },
+      { id: 'wh',   label: 'Warehouse',     sub: 'Snowflake',   x: 400, y: 110, contaminated: true,  required: 'delete' },
+      { id: 'dash', label: 'Dashboard',     sub: 'agg revenue', x: 660, y: 110, contaminated: false, required: null },
+      { id: 'fin',  label: 'Finance Ledger',sub: 'invoices',    x: 400, y: 340, contaminated: true,  required: 'anonymize' },
+      { id: 'bk',   label: 'Backup Vault',  sub: '90-day cold', x: 130, y: 340, contaminated: true,  required: 'anonymize' },
+    ],
+    edges: [
+      ['crm', 'wh'], ['wh', 'dash'], ['crm', 'bk'], ['wh', 'fin'],
+    ],
+  },
+  {
+    title: 'Level 2 — Hidden Exports',
+    user: '#41209',
+    days: 26,
+    briefing: 'User <strong>#41209</strong> was active for two years. Marketing exported a list to an agency. ML used "anonymized" training data (was it?). Some nodes look guilty but aren\'t. <strong>Scan first, act second.</strong>',
+    lesson: 'Third-party exports are where most Erasure requests fail. If you sent the CSV, you owe the deletion request to whoever received it.',
+    nodes: [
+      { id: 'crm',   label: 'CRM',            sub: 'Salesforce',    x: 120, y: 90,  contaminated: true,  required: 'delete' },
+      { id: 'wh',    label: 'Warehouse',      sub: 'BigQuery',      x: 400, y: 90,  contaminated: true,  required: 'delete' },
+      { id: 'dash',  label: 'Exec Dashboard', sub: 'agg only',      x: 670, y: 90,  contaminated: false, required: null },
+      { id: 'ml',    label: 'ML Training Set',sub: 'recs model',    x: 670, y: 240, contaminated: true,  required: 'delete' },
+      { id: 'slack', label: 'Slack Pin',      sub: '#deals',        x: 120, y: 240, contaminated: false, required: null },
+      { id: 'agen',  label: 'Email Agency',   sub: 'Mailgun Pro',   x: 400, y: 380, contaminated: true,  required: 'dpa' },
+      { id: 'fin',   label: 'Finance Ledger', sub: 'subs/invoices', x: 120, y: 420, contaminated: true,  required: 'anonymize' },
+    ],
+    edges: [
+      ['crm','wh'], ['wh','dash'], ['wh','ml'], ['crm','agen'], ['wh','fin'], ['crm','slack'],
+    ],
+  },
+  {
+    title: 'Level 3 — The Long Tail',
+    user: '#07733',
+    days: 32,
+    briefing: 'A long-term user. Data scattered across vendors, audit logs, and dev environments. <strong>Audit logs</strong> are legally required — anonymize, don\'t delete. <strong>Dev copies</strong> count too. Two nodes are clean decoys. Bring it home.',
+    lesson: 'The longer a user has been with you, the longer the tail. Lineage isn\'t a diagram — it\'s an inventory. The steward who keeps the inventory wins the audit.',
+    nodes: [
+      { id: 'crm',   label: 'CRM',             sub: 'Salesforce',   x: 110, y: 80,  contaminated: true,  required: 'delete' },
+      { id: 'wh',    label: 'Warehouse',       sub: 'Redshift',     x: 380, y: 80,  contaminated: true,  required: 'delete' },
+      { id: 'dash',  label: 'KPI Dashboard',   sub: 'aggregates',   x: 660, y: 80,  contaminated: false, required: null },
+      { id: 'ml',    label: 'ML Feature Store',sub: 'churn model',  x: 660, y: 220, contaminated: true,  required: 'delete' },
+      { id: 'dev',   label: 'Dev DB Copy',     sub: 'eng sandbox',  x: 380, y: 220, contaminated: true,  required: 'delete' },
+      { id: 'audit', label: 'Audit Log',       sub: 'SOX retain 7y',x: 110, y: 220, contaminated: true,  required: 'anonymize' },
+      { id: 'fin',   label: 'Finance Ledger',  sub: 'invoices',     x: 110, y: 380, contaminated: true,  required: 'anonymize' },
+      { id: 'sup',   label: 'Support Tool',    sub: 'Zendesk',      x: 380, y: 380, contaminated: true,  required: 'dpa' },
+      { id: 'mkt',   label: 'Ads Vendor',      sub: 'lookalikes',   x: 660, y: 380, contaminated: true,  required: 'dpa' },
+      { id: 'wiki',  label: 'Internal Wiki',   sub: 'no PII',       x: 250, y: 470, contaminated: false, required: null },
+    ],
+    edges: [
+      ['crm','wh'], ['wh','dash'], ['wh','ml'], ['wh','dev'],
+      ['crm','audit'], ['wh','fin'], ['crm','sup'], ['crm','mkt'],
+      ['wh','wiki'],
+    ],
+  },
+];
+
+// ---------------- STATE ----------------
+let state = null;
+
+function newState(levelIdx) {
+  const lvl = LEVELS[levelIdx];
+  return {
+    levelIdx,
+    days: lvl.days,
+    maxDays: lvl.days,
+    trust: 100,
+    selected: null,
+    // per node: status = 'unknown' | 'contaminated' | 'clean' | 'handled'
+    // appliedAction = null | 'delete' | 'anonymize' | 'dpa'
+    nodes: lvl.nodes.map(n => ({
+      ...n,
+      status: 'unknown',
+      appliedAction: null,
+      handledCorrectly: null,
+    })),
+    edges: lvl.edges.map(([a, b]) => ({ a, b, revealed: false })),
+    log: [],
+    finished: false,
+  };
+}
+
+// ---------------- ELEMENTS ----------------
+const $ = (id) => document.getElementById(id);
+const svg = $('graph');
+
+// ---------------- RENDER ----------------
+function render() {
+  // HUD
+  $('hud-level').textContent = `${state.levelIdx + 1} / ${LEVELS.length}`;
+  $('hud-days').textContent = state.days;
+  $('hud-days').className = 'hud-value' + (state.days <= 5 ? ' red' : '');
+  $('hud-trust').textContent = state.trust;
+  $('hud-trust').className = 'hud-value' + (state.trust >= 70 ? ' green' : state.trust >= 40 ? '' : ' red');
+  const handled = state.nodes.filter(n => n.status === 'handled').length;
+  const totalContam = LEVELS[state.levelIdx].nodes.filter(n => n.contaminated).length;
+  $('hud-handled').textContent = `${handled} / ${totalContam}`;
+
+  // Case banner
+  const lvl = LEVELS[state.levelIdx];
+  $('case-user').textContent = lvl.user;
+
+  renderGraph();
+  renderPanel();
+  renderLog();
+}
+
+function renderGraph() {
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+
+  // edges
+  state.edges.forEach(e => {
+    const src = state.nodes.find(n => n.id === e.a);
+    const tgt = state.nodes.find(n => n.id === e.b);
+    if (!src || !tgt) return;
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', src.x);
+    line.setAttribute('y1', src.y);
+    line.setAttribute('x2', tgt.x);
+    line.setAttribute('y2', tgt.y);
+    line.setAttribute('class', 'edge ' + (e.revealed ? 'revealed' : 'hidden'));
+    svg.appendChild(line);
+  });
+
+  // nodes
+  state.nodes.forEach(n => {
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('class', `node-g ${n.status}` + (state.selected === n.id ? ' selected' : ''));
+    g.setAttribute('transform', `translate(${n.x}, ${n.y})`);
+    g.addEventListener('click', () => selectNode(n.id));
+
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('class', 'node-bg');
+    rect.setAttribute('x', -65);
+    rect.setAttribute('y', -32);
+    rect.setAttribute('width', 130);
+    rect.setAttribute('height', 64);
+    rect.setAttribute('rx', 8);
+    g.appendChild(rect);
+
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('class', 'node-label');
+    label.setAttribute('y', -4);
+    label.textContent = n.label;
+    g.appendChild(label);
+
+    const sub = document.createElementNS(ns, 'text');
+    sub.setAttribute('class', 'node-sub');
+    sub.setAttribute('y', 12);
+    sub.textContent = n.sub;
+    g.appendChild(sub);
+
+    // status icon (right top)
+    if (n.status !== 'unknown') {
+      const icon = document.createElementNS(ns, 'text');
+      icon.setAttribute('class', 'node-icon');
+      icon.setAttribute('x', 50);
+      icon.setAttribute('y', -14);
+      icon.setAttribute('font-size', '13');
+      icon.textContent =
+        n.status === 'handled' ? '✓' :
+        n.status === 'contaminated' ? '!' :
+        n.status === 'clean' ? '○' : '';
+      icon.setAttribute('fill',
+        n.status === 'handled' ? 'var(--yellow)' :
+        n.status === 'contaminated' ? 'var(--red)' :
+        'var(--green)');
+      g.appendChild(icon);
+    }
+
+    svg.appendChild(g);
+  });
+}
+
+function renderPanel() {
+  const info = $('node-info');
+  if (!state.selected) {
+    info.innerHTML = `
+      <div class="ni-label">No node selected</div>
+      <div class="ni-meta">Click any node on the map</div>
+      <div class="ni-status">Start with <strong>Scan</strong>. Scanning reveals whether the user's data lives there and exposes downstream lineage.</div>`;
+  } else {
+    const n = state.nodes.find(x => x.id === state.selected);
+    let statusHtml = '';
+    if (n.status === 'unknown') {
+      statusHtml = `<span class="pill unknown">Unknown</span>Not yet scanned. You don't know if the user's data is here.`;
+    } else if (n.status === 'contaminated') {
+      statusHtml = `<span class="pill contaminated">Contaminated</span>The user's data is here. Apply the right action.`;
+    } else if (n.status === 'clean') {
+      statusHtml = `<span class="pill clean">Clean</span>No user data found. Safe to leave alone.`;
+    } else if (n.status === 'handled') {
+      const verb = n.appliedAction === 'delete' ? 'deleted' :
+                   n.appliedAction === 'anonymize' ? 'anonymized' : 'sent to third party for deletion';
+      statusHtml = `<span class="pill handled">Handled</span>Data ${verb}.`;
+    }
+    info.innerHTML = `
+      <div class="ni-label">${n.label}</div>
+      <div class="ni-meta">${n.sub}</div>
+      <div class="ni-status">${statusHtml}</div>`;
+  }
+
+  // Update action availability
+  const n = state.selected ? state.nodes.find(x => x.id === state.selected) : null;
+  document.querySelectorAll('.act').forEach(b => {
+    const act = b.dataset.act;
+    if (act === 'finish') { b.disabled = false; return; }
+    if (!n) { b.disabled = true; return; }
+    if (act === 'scan') {
+      b.disabled = n.status !== 'unknown';
+    } else {
+      // delete / anonymize / dpa — only valid on contaminated nodes
+      b.disabled = n.status !== 'contaminated';
+    }
+  });
+}
+
+function renderLog() {
+  const logEl = $('log');
+  if (state.log.length === 0) {
+    logEl.innerHTML = `<div class="log-entry info">[day 0] Case opened. Begin tracing.</div>`;
+    return;
+  }
+  logEl.innerHTML = state.log.slice().reverse().map(e =>
+    `<div class="log-entry ${e.cls || 'info'}">[day ${e.day}] ${e.text}</div>`
+  ).join('');
+}
+
+function logEvent(text, cls) {
+  const day = state.maxDays - state.days;
+  state.log.push({ day, text, cls });
+}
+
+// ---------------- INTERACTIONS ----------------
+function selectNode(id) {
+  state.selected = id;
+  render();
+}
+
+function revealEdgesFor(nodeId) {
+  state.edges.forEach(e => {
+    if (e.a === nodeId || e.b === nodeId) e.revealed = true;
+  });
+}
+
+function spendDays(d) {
+  state.days -= d;
+  if (state.days < 0) state.days = 0;
+}
+
+function doAction(act) {
+  if (act === 'finish') { submitCase(); return; }
+  if (!state.selected) return;
+  const n = state.nodes.find(x => x.id === state.selected);
+  if (!n) return;
+
+  if (act === 'scan') {
+    if (n.status !== 'unknown') return;
+    if (state.days < COST.scan) { toast('Not enough days.'); return; }
+    spendDays(COST.scan);
+    n.status = n.contaminated ? 'contaminated' : 'clean';
+    revealEdgesFor(n.id);
+    logEvent(`Scanned ${n.label} → ${n.status}.`, n.contaminated ? 'bad' : 'good');
+  } else {
+    if (n.status !== 'contaminated') return;
+    if (state.days < COST[act]) { toast('Not enough days.'); return; }
+    spendDays(COST[act]);
+    n.appliedAction = act;
+    if (n.required === act) {
+      n.status = 'handled';
+      n.handledCorrectly = true;
+      state.trust = Math.min(100, state.trust + 5);
+      const verb = act === 'delete' ? 'Deleted' : act === 'anonymize' ? 'Anonymized' : 'DPA request sent for';
+      logEvent(`${verb} ${n.label}. ✓ correct action.`, 'good');
+    } else {
+      // wrong action — penalty, still marks handled to avoid loops, but flagged wrong
+      n.status = 'handled';
+      n.handledCorrectly = false;
+      state.trust = Math.max(0, state.trust - 15);
+      const wrong = act === 'delete' ? 'Deleted' : act === 'anonymize' ? 'Anonymized' : 'DPA-requested';
+      const right = n.required === 'delete' ? 'delete' : n.required === 'anonymize' ? 'anonymize' : 'send a DPA request';
+      logEvent(`${wrong} ${n.label} — wrong action (should ${right}). −15 trust.`, 'bad');
+    }
+  }
+
+  if (state.days <= 0 && !state.finished) {
+    logEvent(`30-day deadline expired.`, 'bad');
+    submitCase(true);
+  } else {
+    render();
+  }
+}
+
+function submitCase(timeout = false) {
+  if (state.finished) return;
+  state.finished = true;
+
+  const lvl = LEVELS[state.levelIdx];
+  const contam = state.nodes.filter(n => n.contaminated);
+  const handledRight = contam.filter(n => n.status === 'handled' && n.handledCorrectly).length;
+  const handledWrong = contam.filter(n => n.status === 'handled' && n.handledCorrectly === false).length;
+  const missed = contam.filter(n => n.status !== 'handled').length;
+
+  // Penalize missed contaminated nodes heavily
+  state.trust = Math.max(0, state.trust - missed * 25);
+  // Reward leftover days
+  const efficiency = state.days;
+  state.trust = Math.min(100, state.trust + Math.floor(efficiency * 0.5));
+
+  // Show result modal
+  const passed = handledRight === contam.length && handledWrong === 0;
+  const partial = missed === 0 && handledWrong <= 1;
+
+  let verdict, body;
+  if (timeout) {
+    verdict = 'DEADLINE MISSED';
+    body = `You ran out of days. ${missed} node${missed === 1 ? '' : 's'} still contain user data. <strong>That\'s a reportable GDPR breach.</strong>`;
+  } else if (passed) {
+    verdict = 'CASE CLOSED — CLEAN';
+    body = `Every contaminated node handled correctly. ${efficiency} day${efficiency === 1 ? '' : 's'} to spare. This is what a defensible erasure looks like.`;
+  } else if (partial) {
+    verdict = 'CASE CLOSED — WITH NOTES';
+    body = `You got most of it. ${handledWrong} wrong action${handledWrong === 1 ? '' : 's'}. In a real audit, you\'d be answering questions, but the worst is contained.`;
+  } else {
+    verdict = 'CASE CLOSED — INCOMPLETE';
+    body = `${missed} node${missed === 1 ? '' : 's'} not handled, ${handledWrong} wrong action${handledWrong === 1 ? '' : 's'}. Legal will be in touch.`;
+  }
+
+  showModal({
+    title: verdict,
+    briefing: body,
+    lesson: lvl.lesson,
+    stats: [
+      { v: handledRight, l: 'Correct' },
+      { v: handledWrong, l: 'Wrong' },
+      { v: missed, l: 'Missed' },
+    ],
+    trust: state.trust,
+    primary: state.levelIdx < LEVELS.length - 1 ? 'Next case →' : 'Play again',
+    secondary: 'Replay this level',
+    onPrimary: () => {
+      if (state.levelIdx < LEVELS.length - 1) startLevel(state.levelIdx + 1);
+      else startLevel(0);
+    },
+    onSecondary: () => startLevel(state.levelIdx),
+  });
+}
+
+// ---------------- MODAL ----------------
+function showModal(opts) {
+  $('modal-title').textContent = opts.title;
+  $('modal-briefing').innerHTML = opts.briefing;
+  if (opts.stats) {
+    $('modal-stats').style.display = 'grid';
+    $('modal-stats').innerHTML =
+      opts.stats.map(s => `<div class="stat-box"><div class="v">${s.v}</div><div class="l">${s.l}</div></div>`).join('') +
+      (opts.trust !== undefined
+        ? `<div class="stat-box" style="grid-column: span 3;"><div class="v">${opts.trust}</div><div class="l">Final trust score</div></div>`
+        : '');
+  } else {
+    $('modal-stats').style.display = 'none';
+  }
+  $('modal-lesson').textContent = opts.lesson || '';
+  $('modal-lesson').style.display = opts.lesson ? 'block' : 'none';
+  const p = $('modal-primary'); p.textContent = opts.primary || 'Continue';
+  p.onclick = () => { hideModal(); opts.onPrimary && opts.onPrimary(); };
+  const s = $('modal-secondary');
+  if (opts.secondary) {
+    s.style.display = 'inline-block';
+    s.textContent = opts.secondary;
+    s.onclick = () => { hideModal(); opts.onSecondary && opts.onSecondary(); };
+  } else {
+    s.style.display = 'none';
+  }
+  $('modal').classList.add('show');
+}
+function hideModal() { $('modal').classList.remove('show'); }
+
+// ---------------- TOAST ----------------
+let toastTimer;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ---------------- LEVEL FLOW ----------------
+function startLevel(idx) {
+  state = newState(idx);
+  render();
+  const lvl = LEVELS[idx];
+  showModal({
+    title: lvl.title,
+    briefing: lvl.briefing + `<br><br>Budget: <strong>${lvl.days} days</strong>. ${lvl.nodes.filter(n => n.contaminated).length} contaminated nodes hidden among ${lvl.nodes.length} total.`,
+    lesson: null,
+    primary: 'Begin investigation',
+    onPrimary: () => {},
+  });
+}
+
+// ---------------- BOOT ----------------
+document.querySelectorAll('.act').forEach(b => {
+  b.addEventListener('click', () => doAction(b.dataset.act));
+});
+
+startLevel(0);
+</script>
+</body>
+</html>
