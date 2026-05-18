@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Games — The Data Steward</title>
+<meta name="description" content="Interactive mini-games about data governance, lineage, GDPR, and stewardship — by The Data Steward.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  :root {
+    --bg: #0a1628;
+    --bg-2: #12233c;
+    --bg-3: #1a2d4a;
+    --line: rgba(180,195,215,0.12);
+    --line-strong: rgba(255,214,10,0.4);
+    --text: #ffffff;
+    --text-muted: #b4c3d7;
+    --text-dim: #6b7d99;
+    --yellow: #ffd60a;
+    --teal: #00d9c0;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px; opacity: 0.5; pointer-events: none;
+  }
+  main.hub { position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding: 60px 24px 80px; }
+  .hub-eyebrow {
+    font-family: var(--font-mono); font-size: 12px; color: var(--yellow);
+    letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .hub-title {
+    font-family: var(--font-display); font-weight: 700; font-size: 48px;
+    line-height: 1.05; margin-bottom: 16px;
+  }
+  .hub-title .accent { color: var(--yellow); font-style: italic; }
+  .hub-sub {
+    color: var(--text-muted); font-size: 18px; line-height: 1.55;
+    max-width: 640px; margin-bottom: 48px;
+  }
+  .game-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .game-card {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px; text-decoration: none; color: var(--text);
+    display: flex; flex-direction: column; gap: 14px;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .game-card:hover {
+    border-color: var(--line-strong); transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+  }
+  .game-card .badge {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--yellow);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .game-card .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); }
+  .game-card h3 {
+    font-family: var(--font-display); font-size: 26px; font-weight: 600; line-height: 1.15;
+  }
+  .game-card h3 .yellow { color: var(--yellow); }
+  .game-card p {
+    color: var(--text-muted); font-size: 14.5px; line-height: 1.55; flex: 1;
+  }
+  .game-card .meta {
+    display: flex; gap: 18px; font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim); padding-top: 12px; border-top: 1px solid var(--line);
+  }
+  .game-card .meta span strong { color: var(--text); font-weight: 600; }
+  .game-card .cta {
+    font-family: var(--font-mono); font-size: 12px; color: var(--yellow);
+    letter-spacing: 0.05em; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .coming-soon {
+    border-style: dashed; opacity: 0.55; cursor: default;
+  }
+  .coming-soon:hover { transform: none; box-shadow: none; border-color: var(--line); }
+  .coming-soon .badge { color: var(--text-dim); }
+  .coming-soon .badge .dot { background: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="../index.html" class="site-brand">
+      <svg class="site-key" viewBox="0 0 24 24">
+        <circle cx="8" cy="12" r="5" fill="none" stroke="#ffd60a" stroke-width="2.5"/>
+        <path d="M13 12h8m-3 0v3m-2-3v2" stroke="#ffd60a" stroke-width="2.5" fill="none"/>
+      </svg>
+      <span>thedatasteward</span>
+    </a>
+    <nav class="site-nav">
+      <a href="../index.html">Home</a>
+      <a href="index.html" class="active">Games</a>
+      <a href="../library/index.html">Library</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+    <a href="../library/starter-kit/index.html" class="site-cta">Get the Kit</a>
+  </div>
+</header>
+
+<main class="hub">
+  <div class="hub-eyebrow">PLAY · LEARN · DEBATE</div>
+  <h1 class="hub-title">Data governance, <span class="accent">but fun.</span></h1>
+  <p class="hub-sub">
+    Short, sharp, browser-based games that put you in the steward's chair.
+    No signup. No tracking. Just decisions with consequences.
+  </p>
+
+  <div class="game-grid">
+
+    <a href="quiz/index.html" class="game-card">
+      <div class="badge"><span class="dot"></span>Live · Scenarios</div>
+      <h3>Data Steward:<br><span class="yellow">The Quiz.</span></h3>
+      <p>You just took the Data Steward role at Northwind. Eight scenarios from your inbox. Eight calls to make. Find out if you'd survive the first week.</p>
+      <div class="meta">
+        <span><strong>8</strong> cases</span>
+        <span><strong>~5</strong> min</span>
+        <span><strong>80</strong> max REP</span>
+      </div>
+      <span class="cta">Play now →</span>
+    </a>
+
+    <a href="lineage/index.html" class="game-card">
+      <div class="badge"><span class="dot"></span>New · Puzzle</div>
+      <h3>Lineage <span class="yellow">Hunt.</span></h3>
+      <p>A GDPR Right-to-Erasure request just hit your inbox. Trace the user's data across every system, pick the right action — delete, anonymize, or DPA — before the clock runs out.</p>
+      <div class="meta">
+        <span><strong>3</strong> levels</span>
+        <span><strong>~8</strong> min</span>
+        <span><strong>100</strong> trust score</span>
+      </div>
+      <span class="cta">Investigate →</span>
+    </a>
+
+    <div class="game-card coming-soon">
+      <div class="badge"><span class="dot"></span>Soon</div>
+      <h3>More games <span class="yellow">in the works.</span></h3>
+      <p>Catalog wars. Incident comms simulator. Access-review speedrun. Got ideas? <a href="../index.html#contact" style="color: var(--yellow); text-decoration: none;">Tell me</a>.</p>
+      <div class="meta"><span>In development</span></div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

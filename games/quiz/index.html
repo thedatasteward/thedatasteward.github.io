@@ -647,11 +647,11 @@
 <!-- SITE NAV -->
 <header class="game-site-header">
   <div class="game-site-header-inner">
-    <a href="../index.html" class="game-site-brand">
+    <a href="../../index.html" class="game-site-brand">
       <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="5" fill="none" stroke="#ffd60a" stroke-width="2.5"/><path d="M13 12h8m-3 0v3m-2-3v2" stroke="#ffd60a" stroke-width="2.5" fill="none"/></svg>
       <span>thedatasteward</span>
     </a>
-    <a href="../index.html" class="game-back-link">← Back to home</a>
+    <a href="../../index.html" class="game-back-link">← Back to home</a>
   </div>
 </header>
 
@@ -774,6 +774,7 @@
         <span class="arrow">↻</span>
       </button>
       <button class="next-btn" onclick="copyShare()">Copy Share Text</button>
+      <a class="next-btn" href="../lineage/index.html" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Try Lineage Hunt →</a>
     </div>
 
     <div class="share-text" id="share-text"></div>
@@ -947,9 +948,19 @@
     renderScenario();
   }
 
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
   function renderScenario() {
     const s = SCENARIOS[state.currentIdx];
     state.answered = false;
+    state.currentChoices = shuffle(s.choices);
 
     el('meta-case').textContent = `CASE ${String(state.currentIdx + 1).padStart(2, '0')} / ${String(SCENARIOS.length).padStart(2, '0')}`;
     el('meta-rep').textContent = `REP +${state.score}`;
@@ -965,7 +976,7 @@
     const choicesEl = el('choices');
     choicesEl.innerHTML = '';
     const letters = ['A', 'B', 'C', 'D'];
-    s.choices.forEach((c, i) => {
+    state.currentChoices.forEach((c, i) => {
       const btn = document.createElement('button');
       btn.className = 'choice';
       btn.innerHTML = `<span class="choice-letter">${letters[i]}</span><span class="choice-text">${c.text}</span>`;
@@ -980,7 +991,7 @@
     if (state.answered) return;
     state.answered = true;
     const s = SCENARIOS[state.currentIdx];
-    const choice = s.choices[idx];
+    const choice = state.currentChoices[idx];
 
     // Score
     let points = 0;
@@ -996,7 +1007,7 @@
     // Disable + color choices
     document.querySelectorAll('.choice').forEach((btn, i) => {
       btn.classList.add('disabled');
-      const r = s.choices[i].rating;
+      const r = state.currentChoices[i].rating;
       if (i === idx) {
         if (r === 'good') btn.classList.add('correct');
         else if (r === 'bad') btn.classList.add('wrong');
