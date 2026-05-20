@@ -13,7 +13,8 @@ assets/styles.css                   ← Shared styles (nav, header, footer)
 games/                              ← Interactive games
 ├── index.html                      ← Games hub (lists all games)
 ├── quiz/index.html                 ← "Data Steward: The Quiz" — 8 scenarios
-└── lineage/index.html              ← "Lineage Hunt" — GDPR puzzle, 3 levels
+├── lineage/index.html              ← "Lineage Hunt" — GDPR puzzle, 3 levels
+└── incident/index.html             ← "Incident Comms Simulator" — 7-msg crisis sim
 
 library/                            ← Downloadable docs & PDFs
 ├── index.html                      ← Library hub (lists all docs)
