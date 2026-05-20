@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incident Comms Simulator — The Data Steward</title>
+<meta name="description" content="A 90-minute data incident is unfolding. Pick the right comms to CEO, customers, journalists, and regulators before trust erodes. A mini-game by The Data Steward.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1628;
+    --bg-2: #12233c;
+    --bg-3: #1a2d4a;
+    --line: rgba(180, 195, 215, 0.12);
+    --line-strong: rgba(255, 214, 10, 0.4);
+    --text: #ffffff;
+    --text-muted: #b4c3d7;
+    --text-dim: #6b7d99;
+    --yellow: #ffd60a;
+    --teal: #00d9c0;
+    --red: #ff6363;
+    --green: #6edc8c;
+    --orange: #ff9b3d;
+    --shadow: 0 20px 60px rgba(0,0,0,0.4);
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 1;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 24px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .hud {
+    display: flex;
+    gap: 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    align-items: center;
+  }
+  .hud-stat { display: flex; align-items: center; gap: 8px; }
+  .hud-value { color: var(--yellow); font-weight: 700; }
+  .hud-clock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: rgba(255, 214, 10, 0.05);
+  }
+  .hud-clock .pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  /* ============ START SCREEN ============ */
+  .start-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 0;
+    animation: fadeUp 0.6s ease-out;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 32px;
+    height: 2px;
+    background: var(--yellow);
+  }
+  .title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(44px, 8vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+  }
+  .title .stress { color: var(--yellow); font-style: italic; }
+  .lede {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(18px, 2.5vw, 22px);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 620px;
+    margin-bottom: 40px;
+  }
+  .briefing {
+    background: var(--bg-2);
+    border-left: 4px solid var(--red);
+    padding: 24px 28px;
+    margin-bottom: 40px;
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+  .briefing .briefing-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .briefing strong { color: var(--text); font-weight: 600; }
+
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .rule { font-family: var(--font-mono); font-size: 13px; }
+  .rule-num {
+    color: var(--yellow);
+    font-size: 28px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .rule-text { color: var(--text-muted); line-height: 1.5; }
+
+  .start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--yellow);
+    color: var(--bg);
+    border: none;
+    padding: 20px 36px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: all 0.2s ease;
+  }
+  .start-btn:hover {
+    background: #fff;
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--yellow);
+  }
+  .start-btn:active { transform: translate(0,0); box-shadow: none; }
+  .start-btn .arrow { font-size: 20px; }
+
+  /* ============ GAME SCREEN ============ */
+  .game-screen { display: none; flex: 1; flex-direction: column; }
+  .game-screen.active { display: flex; animation: fadeUp 0.4s ease-out; }
+
+  .scenario-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .progress-track {
+    flex: 1;
+    height: 2px;
+    background: var(--line);
+    margin: 0 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    position: absolute;
+    inset: 0 100% 0 0;
+    background: var(--yellow);
+    transition: right 0.4s ease;
+  }
+
+  .scenario-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 36px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .scenario-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60px; height: 4px;
+    background: var(--yellow);
+  }
+  .scenario-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 16px;
+  }
+  .scenario-tag.urgent { color: var(--red); }
+  .scenario-tag.exec { color: var(--orange); }
+
+  .scenario-sender {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .scenario-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(22px, 3.2vw, 32px);
+    line-height: 1.25;
+    margin-bottom: 18px;
+    color: var(--text);
+  }
+  .scenario-body {
+    font-family: var(--font-body);
+    font-size: 16.5px;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .scenario-body strong { color: var(--text); font-weight: 600; }
+
+  .choices-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .choices-label::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--text-dim);
+  }
+
+  .choices { display: flex; flex-direction: column; gap: 12px; }
+  .choice {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 20px 24px;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+  }
+  .choice:hover {
+    border-color: var(--yellow);
+    background: rgba(255, 214, 10, 0.05);
+    transform: translateX(4px);
+  }
+  .choice-letter {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--yellow);
+    flex-shrink: 0;
+    width: 24px;
+  }
+  .choice-text { flex: 1; }
+  .choice.disabled { cursor: default; }
+  .choice.disabled:hover { transform: none; background: transparent; border-color: var(--line); }
+  .choice.disabled.correct {
+    border-color: var(--green);
+    background: rgba(110, 220, 140, 0.08);
+  }
+  .choice.disabled.correct .choice-letter { color: var(--green); }
+  .choice.disabled.wrong {
+    border-color: var(--red);
+    background: rgba(255, 99, 99, 0.08);
+    opacity: 0.7;
+  }
+  .choice.disabled.wrong .choice-letter { color: var(--red); }
+
+  /* ============ FEEDBACK ============ */
+  .feedback {
+    margin-top: 24px;
+    padding: 24px;
+    border-left: 4px solid var(--yellow);
+    background: rgba(255, 214, 10, 0.04);
+    animation: fadeUp 0.4s ease-out;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.good { border-color: var(--green); background: rgba(110, 220, 140, 0.06); }
+  .feedback.bad { border-color: var(--red); background: rgba(255, 99, 99, 0.06); }
+
+  .feedback-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .feedback-verdict {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--yellow);
+  }
+  .feedback.good .feedback-verdict { color: var(--green); }
+  .feedback.bad .feedback-verdict { color: var(--red); }
+  .feedback-points {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .feedback-body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .feedback-lesson {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text);
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .next-btn {
+    margin-top: 20px;
+    background: transparent;
+    border: 1px solid var(--text);
+    color: var(--text);
+    padding: 14px 28px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .next-btn:hover { background: var(--text); color: var(--bg); }
+
+  /* ============ END SCREEN ============ */
+  .end-screen { display: none; flex: 1; flex-direction: column; justify-content: center; padding: 40px 0; }
+  .end-screen.active { display: flex; animation: fadeUp 0.6s ease-out; }
+
+  .verdict-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 16px;
+  }
+  .verdict-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(36px, 6.5vw, 72px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .verdict-title .accent { color: var(--yellow); font-style: italic; }
+
+  .score-display {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .score-num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(72px, 13vw, 150px);
+    line-height: 1;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+  }
+  .score-of {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+  .verdict-blurb {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-style: italic;
+    color: var(--text);
+    max-width: 520px;
+    margin-bottom: 36px;
+    line-height: 1.4;
+  }
+
+  .breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .breakdown-item .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .breakdown-item .val {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 28px;
+    color: var(--text);
+  }
+  .breakdown-item .val.green { color: var(--green); }
+  .breakdown-item .val.yellow { color: var(--yellow); }
+  .breakdown-item .val.red { color: var(--red); }
+
+  .end-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .share-text {
+    margin-top: 12px;
+    padding: 20px;
+    background: var(--bg-2);
+    border: 1px dashed var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    user-select: all;
+    cursor: text;
+  }
+  .share-hint {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 16px; }
+    .scenario-card { padding: 24px; }
+    .start-btn { padding: 16px 24px; font-size: 12px; }
+    .hud { gap: 14px; font-size: 11px; }
+    .end-actions { flex-direction: column; }
+    .end-actions button, .end-actions a { width: 100%; justify-content: center; }
+  }
+
+  /* Site nav (shared pattern with other games) */
+  .game-site-header {
+    border-bottom: 1px solid var(--line);
+    padding: 20px 0;
+    position: relative;
+    z-index: 5;
+  }
+  .game-site-header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .game-site-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .game-site-brand:hover { color: var(--yellow); }
+  .game-site-brand svg { width: 22px; height: 22px; }
+  .game-back-link {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .game-back-link:hover { color: var(--yellow); }
+  @media (max-width: 600px) {
+    .game-site-header-inner { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="game-site-header">
+  <div class="game-site-header-inner">
+    <a href="../../index.html" class="game-site-brand">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="5" fill="none" stroke="#ffd60a" stroke-width="2.5"/><path d="M13 12h8m-3 0v3m-2-3v2" stroke="#ffd60a" stroke-width="2.5" fill="none"/></svg>
+      <span>thedatasteward</span>
+    </a>
+    <a href="../index.html" class="game-back-link">← All games</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">Incident Comms Simulator</div>
+    <div class="hud" id="hud" style="visibility:hidden;">
+      <div class="hud-stat">TRUST <span class="hud-value" id="hud-trust">100</span></div>
+      <div class="hud-stat">MSG <span class="hud-value" id="hud-msg">0/0</span></div>
+      <div class="hud-clock"><span class="pulse"></span><span id="hud-clock">T+00:00</span></div>
+    </div>
+  </div>
+
+  <!-- ============ START SCREEN ============ -->
+  <div class="start-screen" id="start-screen">
+    <div class="eyebrow">A Game by @thedatasteward · ~6 min</div>
+    <h1 class="title">
+      Incident Comms<br>
+      <span class="stress">Simulator.</span>
+    </h1>
+    <p class="lede">
+      An incident has just gone public. The next ninety minutes will decide
+      whether your customers, regulators, and board still trust you tomorrow.
+    </p>
+
+    <div class="briefing">
+      <div class="briefing-label">▌ Incident briefing · 09:47 AM</div>
+      A botched marketing email blast just went out to <strong>40,000 customers</strong>. Due to a
+      templating bug, each recipient saw <strong>another customer's first name</strong> in the salutation
+      ("Hi Marcus,"). No emails, no payment info — but a clear PII exposure under GDPR Art. 33.
+      <br><br>
+      Twitter is already noticing. Your phone is buzzing. You are the Data Steward on point.
+      <strong>Seven messages</strong> are about to hit you. Pick the right reply to each.
+    </div>
+
+    <div class="rules">
+      <div class="rule">
+        <div class="rule-num">01</div>
+        <div class="rule-text">Every reply moves the clock forward. You can't undo a send.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">02</div>
+        <div class="rule-text">Trust starts at 100. Bad calls cost more than great calls earn.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">03</div>
+        <div class="rule-text">There's no "no comment" option. Silence is also a message.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">04</div>
+        <div class="rule-text">At T+90, the board calls. Your trust score is your post-mortem.</div>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startGame()">
+      <span>Take the Call</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <div class="game-screen" id="game-screen">
+    <div class="scenario-meta">
+      <span id="meta-msg">MSG 01</span>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <span id="meta-trust">TRUST 100</span>
+    </div>
+
+    <div class="scenario-card">
+      <span class="scenario-tag" id="s-tag">SLACK</span>
+      <div class="scenario-sender" id="s-sender">From: ...</div>
+      <h2 class="scenario-title" id="s-title">...</h2>
+      <p class="scenario-body" id="s-body">...</p>
+    </div>
+
+    <div class="choices-label">Your reply</div>
+    <div class="choices" id="choices"></div>
+
+    <div class="feedback" id="feedback">
+      <div class="feedback-header">
+        <span class="feedback-verdict" id="fb-verdict">VERDICT</span>
+        <span class="feedback-points" id="fb-points">+0 TRUST</span>
+      </div>
+      <p class="feedback-body" id="fb-body"></p>
+      <p class="feedback-lesson" id="fb-lesson"></p>
+      <button class="next-btn" onclick="nextScenario()" id="next-btn">Next Message →</button>
+    </div>
+  </div>
+
+  <!-- ============ END SCREEN ============ -->
+  <div class="end-screen" id="end-screen">
+    <div class="verdict-eyebrow" id="end-eyebrow">POST-MORTEM</div>
+    <h1 class="verdict-title">Your verdict: <span class="accent" id="end-rank">...</span></h1>
+
+    <div class="score-display">
+      <span class="score-num" id="end-score">0</span>
+      <span class="score-of">/ 100 trust score</span>
+    </div>
+
+    <p class="verdict-blurb" id="end-blurb">...</p>
+
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <div class="label">Stakeholders aligned</div>
+        <div class="val green" id="end-great">0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="label">Mixed signals</div>
+        <div class="val yellow" id="end-okay">0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="label">Trust damaged</div>
+        <div class="val red" id="end-bad">0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="label">Final time</div>
+        <div class="val" id="end-time">T+90</div>
+      </div>
+    </div>
+
+    <div class="end-actions">
+      <button class="start-btn" onclick="restartGame()">
+        <span>Run It Again</span>
+        <span class="arrow">↻</span>
+      </button>
+      <button class="next-btn" onclick="copyShare()">Copy Share Text</button>
+      <a class="next-btn" href="../quiz/index.html" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Try The Quiz →</a>
+    </div>
+
+    <div class="share-text" id="share-text"></div>
+    <div class="share-hint" id="share-hint">↑ Tap and hold to copy · paste into Stories</div>
+  </div>
+
+  <div class="footer">
+    <span>Data governance, in plain English.</span>
+    <span>@thedatasteward · 2026</span>
+  </div>
+
+</div>
+
+<script>
+  // 7 messages. Trust starts at 100. Good = +0 (you held the line), Okay = -5, Bad = -15.
+  // Why subtractive? You don't earn trust during an incident — you keep it or lose it.
+  const SCENARIOS = [
+    {
+      tag: 'SLACK · DM',
+      tagClass: 'exec',
+      sender: 'From: Priya · CEO · T+04 min',
+      title: '"What just happened? Twitter is on fire."',
+      body: 'Priya: <strong>"I\'m seeing screenshots already. Tell me in two sentences what happened and what we\'re doing. I have an investor call in 25 minutes."</strong>',
+      choices: [
+        { text: '"We\'re still investigating, I\'ll update you when I know more." Buy yourself time before committing to anything.', rating: 'bad' },
+        { text: '"Templating bug exposed first names across 40k emails — no payment data, no emails leaked. We\'ve paused all sends, eng is rolling back, I\'ll have draft customer comms in 20 min." Two sentences. What + what we\'re doing.', rating: 'good' },
+        { text: '"It\'s probably nothing — a small email mix-up. PR will handle Twitter." Downplay so she stays calm for the investor call.', rating: 'bad' },
+        { text: '"Marketing sent a broken email. We think it\'s contained. Let me get back to you after I sync with legal."', rating: 'okay' },
+      ],
+      lesson: 'Executives in a crisis need facts + action, not "investigating." The first internal comms set the tone for everything downstream — including how the CEO sounds on her investor call.',
+      goodMsg: 'Exactly the brief she needed. Scoped the harm ("no payment data"), named the action ("paused, rolling back"), and set the next checkpoint. She walks into that investor call confident.',
+      okayMsg: 'You named the cause, but "we think it\'s contained" without a checkpoint leaves her guessing. In 20 minutes she\'ll Slack you again — and that\'s a minute you don\'t have.',
+      badMsg: 'Either you stalled (which she\'ll read as panic) or you minimized (which becomes a quote in the article tomorrow). Neither is survivable.',
+      timeAdvance: 6,
+    },
+    {
+      tag: 'EMAIL · From Comms',
+      tagClass: 'urgent',
+      sender: 'From: Theo · Head of Comms · T+12 min',
+      title: 'Draft customer email — review urgently?',
+      body: 'Theo sends a draft: <strong>"Dear Valued Customer, we recently experienced a minor technical issue with one of our email campaigns. Some of our valued customers may have noticed an irregularity. We sincerely apologize for any inconvenience. — Customer Care Team"</strong> Ship it?',
+      choices: [
+        { text: 'Ship as-is. Theo writes for a living — he knows what he\'s doing.', rating: 'bad' },
+        { text: 'Edit: say plainly what was exposed (first names) and what wasn\'t (emails, payment, etc.), what they should do (nothing — no action required), and sign it from a named exec. Ship that.', rating: 'good' },
+        { text: 'Send back: "soften the apology, we don\'t want to admit fault before legal signs off."', rating: 'bad' },
+        { text: 'Ship it but ask Theo to add a sentence on what data was exposed.', rating: 'okay' },
+      ],
+      lesson: '"Minor technical issue" + "irregularity" is the dialect customers translate as "they\'re hiding something." Plain language + specifics + named signer = the only post-incident apology that actually rebuilds trust.',
+      goodMsg: 'You turned PR-speak into something a customer can act on. Specificity is the difference between "they came clean" and "they got caught later."',
+      okayMsg: 'Half-right — adding the data scope helps. But the corporate "valued customer" framing still reads as a hostage statement. Customers can tell.',
+      badMsg: 'Watering down language before legal review is doubly bad: legal hasn\'t even seen it AND the language is now less defensible. You\'ve broken both sides of the chain.',
+      timeAdvance: 9,
+    },
+    {
+      tag: 'TWITTER · @melliej',
+      tagClass: 'urgent',
+      sender: 'From: Customer · 2.3k retweets · T+21 min',
+      title: '"@yourcompany just doxxed me to a stranger lol"',
+      body: 'Mellie tweets a screenshot of the email with "Hi Marcus," circled in red: <strong>"so I\'m Mellie and apparently I\'m also Marcus now? what kind of GDPR violation is this 😭 anyone else?"</strong> The thread is growing.',
+      choices: [
+        { text: 'Reply publicly: "Hi Mellie, we\'re aware of the issue and a fix is rolling out. DM us for details." Visible, calm, points to a direct channel.', rating: 'good' },
+        { text: 'Don\'t engage — feeding the thread will only amplify it.', rating: 'bad' },
+        { text: 'Reply: "This is being misrepresented. No personal data was exposed."', rating: 'bad' },
+        { text: 'Like the tweet so she knows you\'ve seen it, but reply privately via DM only.', rating: 'okay' },
+      ],
+      lesson: 'In a public incident, the response in the thread IS the response to the next 10,000 people reading the thread. Silence reads as guilt; defensiveness reads as gaslighting.',
+      goodMsg: 'You showed up, named the action, and offered a path off the public stage. Other readers see "they\'re on it" instead of "they vanished."',
+      okayMsg: 'Engaging privately is fine, but a "like" without a public reply tells everyone else in the thread you\'re ducking. The thread keeps growing.',
+      badMsg: 'Either you ghosted (the thread doubles) or you contradicted a screenshot the world can see (you just became the meme). Both are unrecoverable on Twitter.',
+      timeAdvance: 11,
+    },
+    {
+      tag: 'EMAIL · journalist',
+      tagClass: 'urgent',
+      sender: 'From: Hannah · Reporter, TechCrunch · T+34 min',
+      title: '"Filing in 90 min — care to comment?"',
+      body: 'Hannah emails: <strong>"Hi — writing up the email leak. I have screenshots from ~15 customers and a quote from a privacy advocate calling it \'textbook GDPR negligence.\' Filing at 12:00. Any statement?"</strong>',
+      choices: [
+        { text: 'Reply with a tight on-record statement: what happened, what data was/wasn\'t exposed, the action taken so far, and that affected customers are being notified directly. No "no comment."', rating: 'good' },
+        { text: '"No comment at this time." Don\'t feed the story.', rating: 'bad' },
+        { text: 'Forward to legal and let them respond after 12:00. The story will run regardless.', rating: 'bad' },
+        { text: 'Reply off-the-record only, asking her to hold the story until tomorrow.', rating: 'okay' },
+      ],
+      lesson: 'A journalist with a 90-minute filing window will publish with or without you. "No comment" becomes "Company X declined to comment" — and that\'s the line readers remember.',
+      goodMsg: 'You got into the lede instead of the kicker. Your version of events is now what the reader sees first — and the privacy advocate\'s quote sounds less damning next to a clear factual reply.',
+      okayMsg: 'Off-the-record can occasionally buy time, but asking to hold a breaking story is naive — and it gives her nothing on-record to balance the advocate\'s quote. The story still runs.',
+      badMsg: 'Either you handed her "declined to comment" or you missed her deadline entirely. Either way, the story runs without your version of events. That\'s a self-inflicted wound.',
+      timeAdvance: 13,
+    },
+    {
+      tag: 'EMAIL · DPA',
+      tagClass: 'urgent',
+      sender: 'From: Irish DPC (regulator) · T+52 min',
+      title: '"Are you aware of an Article 33 obligation?"',
+      body: 'A regulator inquiry lands: <strong>"We\'ve received reports of a possible personal data breach involving your services. Please confirm whether this constitutes a notifiable breach under GDPR Article 33, and your timeline for notification. — Irish DPC"</strong>',
+      choices: [
+        { text: 'Reply immediately confirming awareness, that an Art. 33 assessment is underway with legal + DPO, and commit to a notification within the 72-hour window with a documented timeline.', rating: 'good' },
+        { text: 'Reply: "We don\'t believe this rises to the level of a notifiable breach." Lock in the position now.', rating: 'bad' },
+        { text: 'Reply: "Thank you for reaching out. We\'ll respond once our internal investigation concludes." Stall politely.', rating: 'bad' },
+        { text: 'Loop in your DPO and ask them to draft the reply within 24 hours.', rating: 'okay' },
+      ],
+      lesson: 'Article 33 is a 72-hour clock that started the moment you became "aware." Pre-committing to "not notifiable" before the assessment is done is how companies turn one fine into two.',
+      goodMsg: 'You bought the regulator the one thing they actually want: process credibility. Acknowledging the clock, naming the assessors, committing to a timeline — that\'s the language of a defensible record.',
+      okayMsg: 'Looping in your DPO is right. 24 hours is too slow — regulators measure responsiveness from the first message, not the first deadline. Same answer, faster.',
+      badMsg: 'You either pre-decided the legal conclusion (which will look like obstruction in the file) or you stalled (which restarts the trust clock with a regulator). Both end up in the enforcement decision.',
+      timeAdvance: 14,
+    },
+    {
+      tag: 'SLACK · #data-eng',
+      tagClass: '',
+      sender: 'From: Yusuf · Senior Data Engineer · T+66 min',
+      title: '"Quick — should I delete the broken send logs?"',
+      body: 'Yusuf in the eng channel: <strong>"I can delete the email-blast logs to stop further exposure if anyone queries them. Want me to drop the table? Takes 30 seconds."</strong>',
+      choices: [
+        { text: '"Drop it. Less data = less risk."', rating: 'bad' },
+        { text: '"Stop. Those logs are evidence — we need them for the Art. 33 assessment, the post-mortem, and possibly the regulator file. Lock them down, don\'t delete." Then pin the message.', rating: 'good' },
+        { text: '"Export a copy first, then drop the table."', rating: 'bad' },
+        { text: '"Hold off — let me check with legal first."', rating: 'okay' },
+      ],
+      lesson: 'Deleting incident evidence mid-incident is the single fastest way to turn a notifiable breach into a criminal investigation. The instinct to "make the data go away" is exactly the instinct an incident response procedure exists to override.',
+      goodMsg: 'You caught a well-intentioned own goal. The logs ARE the audit trail — they prove what happened, what you knew, and when. Without them, the regulator\'s default assumption becomes "they had something to hide."',
+      okayMsg: 'Checking with legal is correct but slow — and Yusuf\'s finger is on the trigger now. "Hold off" without "DO NOT DELETE — these are evidence" leaves room for an accident.',
+      badMsg: 'Whether you ordered the delete or just exported-and-then-deleted, you\'ve compromised the evidence chain. That\'s the line between "incident" and "obstruction." Career-ending.',
+      timeAdvance: 11,
+    },
+    {
+      tag: 'EMAIL · Board chair',
+      tagClass: 'exec',
+      sender: 'From: Eleanor · Board Chair · T+85 min',
+      title: '"Calling an emergency board call at 5pm. Walk me through it."',
+      body: 'Eleanor writes: <strong>"I need to brief the board in 4 hours. What\'s the one slide? What went wrong, what we did, and what changes so this doesn\'t happen again. Be honest."</strong>',
+      choices: [
+        { text: 'Send the one slide: <strong>(1)</strong> templating bug exposed first names of 40k customers — no payment/credentials. <strong>(2)</strong> Sends paused at T+8, customer comms at T+25, regulator notified at T+58. <strong>(3)</strong> Three changes: mandatory pre-prod template review, no prod data in marketing tooling, comms-runbook test quarterly. Honest, scoped, actionable.', rating: 'good' },
+        { text: 'Send a deck blaming a vendor for the template engine bug — protect the team.', rating: 'bad' },
+        { text: 'Tell her it\'s too early to commit to changes; you\'ll have a full post-mortem in 2 weeks.', rating: 'bad' },
+        { text: 'Send the timeline of what happened, and say you\'ll come back with proposed changes after the post-mortem.', rating: 'okay' },
+      ],
+      lesson: 'Boards don\'t want full post-mortems in the room — they want a defensible narrative + concrete changes. "We\'ll know in 2 weeks" reads as "we don\'t have control." Three changes, named, scoped, owned.',
+      goodMsg: 'Perfectly board-ready. One slide, three columns, three commitments. Eleanor walks in armed; the board walks out reassured. The next morning\'s headlines have a smaller half-life because the story already has an ending.',
+      okayMsg: 'Solid timeline, but boards interpret "changes after the post-mortem" as "we\'re not sure yet." Even tentative changes ("we\'re piloting X") beat "TBD" — it shows the org is steering, not drifting.',
+      badMsg: 'Blaming a vendor will be found out within a news cycle. "Too early" hands the narrative to whoever IS willing to commit. Either move turns one bad day into a bad quarter.',
+      timeAdvance: 8,
+    },
+  ];
+
+  // ============ STATE ============
+  let state = {
+    currentIdx: 0,
+    trust: 100,
+    great: 0,
+    okay: 0,
+    bad: 0,
+    elapsed: 0, // minutes since T+0
+    startTime: null,
+    answered: false,
+    currentChoices: [],
+  };
+
+  const el = (id) => document.getElementById(id);
+
+  function formatClock(min) {
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return `T+${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  function startGame() {
+    state = { currentIdx: 0, trust: 100, great: 0, okay: 0, bad: 0, elapsed: 0, startTime: Date.now(), answered: false, currentChoices: [] };
+    el('start-screen').style.display = 'none';
+    el('end-screen').classList.remove('active');
+    el('game-screen').classList.add('active');
+    el('hud').style.visibility = 'visible';
+    renderScenario();
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function renderScenario() {
+    const s = SCENARIOS[state.currentIdx];
+    state.answered = false;
+    state.currentChoices = shuffle(s.choices);
+
+    el('meta-msg').textContent = `MSG ${String(state.currentIdx + 1).padStart(2, '0')} / ${String(SCENARIOS.length).padStart(2, '0')}`;
+    el('meta-trust').textContent = `TRUST ${state.trust}`;
+    el('hud-msg').textContent = `${state.currentIdx + 1}/${SCENARIOS.length}`;
+    el('hud-trust').textContent = state.trust;
+    el('hud-clock').textContent = formatClock(state.elapsed);
+    el('progress-fill').style.right = `${100 - (state.currentIdx / SCENARIOS.length) * 100}%`;
+
+    const tagEl = el('s-tag');
+    tagEl.className = 'scenario-tag';
+    if (s.tagClass) tagEl.classList.add(s.tagClass);
+    tagEl.textContent = s.tag;
+    el('s-sender').textContent = s.sender;
+    el('s-title').textContent = s.title;
+    el('s-body').innerHTML = s.body;
+
+    const choicesEl = el('choices');
+    choicesEl.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D'];
+    state.currentChoices.forEach((c, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="choice-letter">${letters[i]}</span><span class="choice-text">${c.text}</span>`;
+      btn.onclick = () => handleChoice(i);
+      choicesEl.appendChild(btn);
+    });
+
+    el('feedback').classList.remove('show', 'good', 'bad');
+  }
+
+  function handleChoice(idx) {
+    if (state.answered) return;
+    state.answered = true;
+    const s = SCENARIOS[state.currentIdx];
+    const choice = state.currentChoices[idx];
+
+    let delta = 0;
+    let verdict = '';
+    let cls = '';
+    if (choice.rating === 'good') { delta = 0; verdict = 'HELD THE LINE'; cls = 'good'; state.great++; }
+    else if (choice.rating === 'okay') { delta = -5; verdict = 'MIXED SIGNALS'; cls = ''; state.okay++; }
+    else { delta = -15; verdict = 'TRUST DAMAGED'; cls = 'bad'; state.bad++; }
+
+    state.trust = Math.max(0, state.trust + delta);
+    state.elapsed += s.timeAdvance;
+    el('hud-trust').textContent = state.trust;
+    el('hud-clock').textContent = formatClock(state.elapsed);
+
+    document.querySelectorAll('.choice').forEach((btn, i) => {
+      btn.classList.add('disabled');
+      const r = state.currentChoices[i].rating;
+      if (i === idx) {
+        if (r === 'good') btn.classList.add('correct');
+        else if (r === 'bad') btn.classList.add('wrong');
+      } else if (r === 'good') {
+        btn.classList.add('correct');
+      }
+    });
+
+    const fb = el('feedback');
+    fb.className = 'feedback show ' + cls;
+    el('fb-verdict').textContent = verdict;
+    el('fb-points').textContent = delta === 0 ? 'TRUST HELD' : `${delta} TRUST`;
+    el('fb-body').textContent =
+      choice.rating === 'good' ? s.goodMsg
+      : choice.rating === 'okay' ? s.okayMsg
+      : s.badMsg;
+    el('fb-lesson').textContent = '"' + s.lesson + '"';
+
+    setTimeout(() => fb.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+
+  function nextScenario() {
+    state.currentIdx++;
+    if (state.currentIdx >= SCENARIOS.length) {
+      showEnd();
+    } else {
+      renderScenario();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function showEnd() {
+    el('game-screen').classList.remove('active');
+    el('end-screen').classList.add('active');
+
+    let rank, blurb, eyebrow;
+    if (state.trust >= 90) {
+      rank = 'Trusted Comms Lead';
+      blurb = 'Calm, fast, specific. Tomorrow\'s headline reads "company responds quickly" — and the board chair already knows your name.';
+      eyebrow = 'PROMOTED';
+    } else if (state.trust >= 70) {
+      rank = 'Steady Hand';
+      blurb = 'You\'d survive the post-mortem. A few edges that legal will note for the playbook.';
+      eyebrow = 'STEADY';
+    } else if (state.trust >= 45) {
+      rank = 'Shaky Response';
+      blurb = 'You contained it, barely. Twitter has the receipts. There will be a follow-up board agenda item.';
+      eyebrow = 'ON NOTICE';
+    } else {
+      rank = 'Communications Liability';
+      blurb = 'The story is the response, not the incident. Read the Starter Kit, then run it again.';
+      eyebrow = 'POST-MORTEM PENDING';
+    }
+
+    el('end-eyebrow').textContent = eyebrow;
+    el('end-rank').textContent = rank;
+    el('end-score').textContent = state.trust;
+    el('end-blurb').textContent = blurb;
+    el('end-great').textContent = state.great;
+    el('end-okay').textContent = state.okay;
+    el('end-bad').textContent = state.bad;
+    el('end-time').textContent = formatClock(state.elapsed);
+
+    const shareTxt = `I scored ${state.trust}/100 on Incident Comms Simulator.
+
+Rank: ${rank}
+✓ ${state.great} stakeholders aligned
+~ ${state.okay} mixed signals
+✗ ${state.bad} trust damaged
+
+Can you hold the line? Play at @thedatasteward`;
+    el('share-text').textContent = shareTxt;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function restartGame() {
+    startGame();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function copyShare() {
+    const txt = el('share-text').textContent;
+    navigator.clipboard.writeText(txt).then(() => {
+      const hint = el('share-hint');
+      const orig = hint.textContent;
+      hint.textContent = '✓ COPIED — PASTE INTO STORIES OR DM';
+      setTimeout(() => { hint.textContent = orig; }, 2500);
+    }).catch(() => {
+      const range = document.createRange();
+      range.selectNode(el('share-text'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    });
+  }
+</script>
+</body>
+</html>
